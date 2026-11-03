@@ -1,6 +1,6 @@
 # tcc-backend-ads-ifba
 
-Backend do **LeiJa**, sistema web multi-tenant de gestão jurídica para escritórios de advocacia (MVP do TCC – ADS/IFBA).
+Backend do **Juridora**, sistema web multi-tenant de gestão jurídica para escritórios de advocacia (MVP do TCC – ADS/IFBA).
 
 Arquitetura: **monólito modular** (Spring Modulith) + **DDD** + **Hexagonal** (Ports and Adapters). As decisões estão em [`tcc-ads-ifba/README.md`](../tcc-ads-ifba/README.md) e em [`doc-mvp/04-arquitetura-e-design-tecnico`](../tcc-ads-ifba/doc-mvp/04-arquitetura-e-design-tecnico/).
 
