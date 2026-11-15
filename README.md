@@ -1,5 +1,7 @@
 # tcc-backend-ads-ifba
 
+[![CI](https://github.com/JandersonMota/tcc-backend-ads-ifba/actions/workflows/ci.yml/badge.svg)](https://github.com/JandersonMota/tcc-backend-ads-ifba/actions/workflows/ci.yml)
+
 Backend do **Juridora**, sistema web multi-tenant de gestão jurídica para escritórios de advocacia (MVP do TCC – ADS/IFBA).
 
 Arquitetura: **monólito modular** (Spring Modulith) + **DDD** + **Hexagonal** (Ports and Adapters). As decisões estão em [`tcc-ads-ifba/README.md`](../tcc-ads-ifba/README.md) e em [`doc-mvp/04-arquitetura-e-design-tecnico`](../tcc-ads-ifba/doc-mvp/04-arquitetura-e-design-tecnico/).
@@ -65,6 +67,9 @@ Configuração completa do ambiente: [`configuracao-do-ambiente.md`](../tcc-ads-
 
 ```
 tcc-backend-ads-ifba
+├── .github
+│   ├── workflows/ci.yml               ← CI: ./mvnw verify (JDK 25 + Testcontainers) a cada push e PR
+│   └── dependabot.yml                 ← atualizações semanais (Maven, actions, docker-compose)
 ├── docker
 │   ├── docker-compose.yml             ← contêiner juridora-postgres (PostgreSQL 18.7)
 │   ├── .env                           ← senhas, porta e perfil local (não versionado)
