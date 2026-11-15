@@ -6,7 +6,7 @@
 | Integração | Persistência, APIs REST, migrações | Spring Boot Test + **Testcontainers** (PostgreSQL real) |
 | Autorização | Permissões por endpoint | Spring Security Test |
 | Isolamento multi-tenant | Filtro da aplicação **e** RLS | Testcontainers |
-| Arquitetura | Fronteiras entre módulos | Spring Modulith (`ApplicationModules`) / ArchUnit |
+| Arquitetura | Fronteiras entre módulos e camadas | Spring Modulith (`ModularidadeTest`) / ArchUnit (`CamadasTest`) |
 
 Não use H2 ou banco em memória: o RLS e os tipos do PostgreSQL só são testados de verdade no PostgreSQL.
 
@@ -78,9 +78,22 @@ class ModularidadeTest {
 
 Esse teste já existe em `src/test/java/br/com/juridora/arquitetura/ModularidadeTest.java`.
 
-`verify()` falha se um módulo acessar tipos internos de outro ou se houver ciclos entre módulos. Use ArchUnit para regras adicionais, por exemplo:
-- o pacote `dominio` não depende de `adaptador` nem de Spring Web;
-- controllers só existem em `adaptador.entrada.web`;
-- classes em `adaptador.saida.persistencia` não são usadas fora do próprio módulo.
+`verify()` falha se um módulo acessar tipos internos de outro ou se houver ciclos entre módulos.
+
+As camadas **dentro** de cada módulo são verificadas pelo ArchUnit em `src/test/java/br/com/juridora/arquitetura/CamadasTest.java` (ADR-008):
+
+| Regra | O que proíbe |
+|---|---|
+| `dominioNaoDependeDeAplicacaoAdaptadorNemInfraestrutura` | `dominio` usando `aplicacao`, `adaptador`, `configuracao` ou `compartilhado.infraestrutura` |
+| `dominioNaoDependeDeWebSegurancaNemClientesHttp` | `dominio` usando Spring Web/HTTP, Spring Security, Servlet, `java.net.http`, SpringDoc/Swagger |
+| `aplicacaoNaoDependeDeAdaptadores` | `aplicacao` usando qualquer `adaptador` |
+| `controllersFicamApenasEmAdaptadorEntradaWeb` | `@Controller`/`@RestController` fora de `adaptador.entrada.web` |
+| `controllersTemSufixoController` | Controller sem o sufixo `Controller` |
+| `adaptadoresDeEntradaNaoAcessamRepositoriosNemAdaptadoresDeSaida` | `adaptador.entrada` usando `dominio.repositorio`, `adaptador.saida`, Spring Data ou JPA |
+| `dtosDeEntradaNaoTemCampoDeTenant` | `*Request` com campo `tenantId` (ou similar) |
+| `controllersNaoRecebemTenantPorParametroHeaderOuPath` | `@RequestParam`/`@RequestHeader`/`@PathVariable` com "tenant" no nome |
+| `semInjecaoPorCampo` | `@Autowired`/`@Inject` em campos (usar construtor) |
+
+As regras usam `allowEmptyShould(true)`: passam com os pacotes vazios e valem automaticamente quando o código chegar. Ao criar uma regra nova, confirme que ela falha com uma classe que a viola antes de confiar nela.
 
 Spring Modulith também gera documentação dos módulos (`Documenter`), útil para o documento do TCC. O `ModularidadeTest` já a gera em `target/spring-modulith-docs/`.
