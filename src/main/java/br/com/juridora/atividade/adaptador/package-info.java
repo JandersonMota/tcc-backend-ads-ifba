@@ -1,4 +1,4 @@
 /**
  * Adaptadores do módulo atividade.
  */
-package br.com.leija.atividade.adaptador;
+package br.com.juridora.atividade.adaptador;

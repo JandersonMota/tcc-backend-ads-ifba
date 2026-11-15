@@ -1,4 +1,4 @@
 /**
  * Adaptadores do módulo financeiro.
  */
-package br.com.leija.financeiro.adaptador;
+package br.com.juridora.financeiro.adaptador;

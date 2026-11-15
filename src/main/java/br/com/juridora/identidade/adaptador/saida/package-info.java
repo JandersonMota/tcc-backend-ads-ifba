@@ -1,4 +1,4 @@
 /**
  * Adaptadores de saída do módulo identidade.
  */
-package br.com.leija.identidade.adaptador.saida;
+package br.com.juridora.identidade.adaptador.saida;

@@ -1,4 +1,4 @@
 /**
  * Adaptadores do módulo autorizacao.
  */
-package br.com.leija.autorizacao.adaptador;
+package br.com.juridora.autorizacao.adaptador;

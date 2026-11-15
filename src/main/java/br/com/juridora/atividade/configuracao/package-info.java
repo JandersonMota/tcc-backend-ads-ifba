@@ -1,4 +1,4 @@
 /**
  * Configuração de beans do módulo atividade.
  */
-package br.com.leija.atividade.configuracao;
+package br.com.juridora.atividade.configuracao;

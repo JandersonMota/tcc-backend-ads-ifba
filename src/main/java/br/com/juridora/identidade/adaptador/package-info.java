@@ -1,4 +1,4 @@
 /**
  * Adaptadores do módulo identidade.
  */
-package br.com.leija.identidade.adaptador;
+package br.com.juridora.identidade.adaptador;

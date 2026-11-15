@@ -1,4 +1,4 @@
 /**
  * Serviços de aplicação do módulo identidade.
  */
-package br.com.leija.identidade.aplicacao;
+package br.com.juridora.identidade.aplicacao;

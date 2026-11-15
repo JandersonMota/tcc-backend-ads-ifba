@@ -1,4 +1,4 @@
 /**
  * Camada de aplicação do módulo escritorio.
  */
-package br.com.leija.escritorio.aplicacao;
+package br.com.juridora.escritorio.aplicacao;

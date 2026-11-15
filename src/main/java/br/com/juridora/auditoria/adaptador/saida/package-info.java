@@ -1,4 +1,4 @@
 /**
  * Adaptadores de saída do módulo auditoria.
  */
-package br.com.leija.auditoria.adaptador.saida;
+package br.com.juridora.auditoria.adaptador.saida;

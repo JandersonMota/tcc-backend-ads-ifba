@@ -1,4 +1,4 @@
 /**
  * Camada de aplicação do módulo autorizacao.
  */
-package br.com.leija.autorizacao.aplicacao;
+package br.com.juridora.autorizacao.aplicacao;

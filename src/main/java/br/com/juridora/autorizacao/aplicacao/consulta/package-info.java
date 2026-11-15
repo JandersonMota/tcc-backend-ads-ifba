@@ -1,4 +1,4 @@
 /**
  * Records e casos de uso de leitura (*Query) do módulo autorizacao.
  */
-package br.com.leija.autorizacao.aplicacao.consulta;
+package br.com.juridora.autorizacao.aplicacao.consulta;

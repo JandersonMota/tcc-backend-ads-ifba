@@ -1,4 +1,4 @@
 /**
  * Adaptadores do módulo escritorio.
  */
-package br.com.leija.escritorio.adaptador;
+package br.com.juridora.escritorio.adaptador;

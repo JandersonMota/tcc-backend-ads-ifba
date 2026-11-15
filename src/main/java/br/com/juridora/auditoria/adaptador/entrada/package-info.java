@@ -1,4 +1,4 @@
 /**
  * Adaptadores de entrada do módulo auditoria.
  */
-package br.com.leija.auditoria.adaptador.entrada;
+package br.com.juridora.auditoria.adaptador.entrada;

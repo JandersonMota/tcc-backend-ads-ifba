@@ -1,4 +1,4 @@
 /**
  * Adaptadores de saída do módulo portabilidade.
  */
-package br.com.leija.portabilidade.adaptador.saida;
+package br.com.juridora.portabilidade.adaptador.saida;

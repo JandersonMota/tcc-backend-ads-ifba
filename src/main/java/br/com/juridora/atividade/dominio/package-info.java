@@ -1,4 +1,4 @@
 /**
  * Domínio do módulo atividade.
  */
-package br.com.leija.atividade.dominio;
+package br.com.juridora.atividade.dominio;

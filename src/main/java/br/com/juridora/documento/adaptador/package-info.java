@@ -1,4 +1,4 @@
 /**
  * Adaptadores do módulo documento.
  */
-package br.com.leija.documento.adaptador;
+package br.com.juridora.documento.adaptador;

@@ -1,4 +1,4 @@
 /**
  * Domínio do módulo autorizacao.
  */
-package br.com.leija.autorizacao.dominio;
+package br.com.juridora.autorizacao.dominio;

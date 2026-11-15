@@ -1,4 +1,4 @@
 /**
  * Implementações JPA das portas de saída do módulo autorizacao.
  */
-package br.com.leija.autorizacao.adaptador.saida.persistencia;
+package br.com.juridora.autorizacao.adaptador.saida.persistencia;

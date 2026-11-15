@@ -1,4 +1,4 @@
 /**
  * Serviços de aplicação do módulo auditoria.
  */
-package br.com.leija.auditoria.aplicacao;
+package br.com.juridora.auditoria.aplicacao;

@@ -1,4 +1,4 @@
 /**
  * Configuração web comum (@RestControllerAdvice, Problem Details).
  */
-package br.com.leija.compartilhado.infraestrutura.web;
+package br.com.juridora.compartilhado.infraestrutura.web;

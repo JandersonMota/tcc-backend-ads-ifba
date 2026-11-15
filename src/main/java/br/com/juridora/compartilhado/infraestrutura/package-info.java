@@ -1,4 +1,4 @@
 /**
  * Infraestrutura transversal.
  */
-package br.com.leija.compartilhado.infraestrutura;
+package br.com.juridora.compartilhado.infraestrutura;

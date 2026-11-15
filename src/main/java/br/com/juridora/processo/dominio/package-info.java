@@ -1,4 +1,4 @@
 /**
  * Domínio do módulo processo.
  */
-package br.com.leija.processo.dominio;
+package br.com.juridora.processo.dominio;

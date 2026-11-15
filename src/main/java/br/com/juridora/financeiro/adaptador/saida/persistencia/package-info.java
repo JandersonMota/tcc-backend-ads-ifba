@@ -1,4 +1,4 @@
 /**
  * Implementações JPA das portas de saída do módulo financeiro.
  */
-package br.com.leija.financeiro.adaptador.saida.persistencia;
+package br.com.juridora.financeiro.adaptador.saida.persistencia;

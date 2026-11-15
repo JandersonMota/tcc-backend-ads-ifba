@@ -1,4 +1,4 @@
 /**
  * Implementações JPA das portas de saída do módulo notificacao.
  */
-package br.com.leija.notificacao.adaptador.saida.persistencia;
+package br.com.juridora.notificacao.adaptador.saida.persistencia;

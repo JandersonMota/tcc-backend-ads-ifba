@@ -1,4 +1,4 @@
 /**
  * Adaptadores de saída do módulo processo.
  */
-package br.com.leija.processo.adaptador.saida;
+package br.com.juridora.processo.adaptador.saida;

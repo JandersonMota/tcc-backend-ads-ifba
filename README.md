@@ -28,7 +28,7 @@ Pré-requisitos: JDK 25 e Docker em execução.
 ./mvnw verify                  # compila e executa todos os testes
 ```
 
-No Windows, use `mvnw.cmd`. No IntelliJ, execute `TestTccBackendAdsIfbaApplication` (em `src/test/java`) para subir com o banco do Testcontainers, ou `TccBackendAdsIfbaApplication` com um PostgreSQL configurado.
+No Windows, use `mvnw.cmd`. No IntelliJ, execute `TestJuridoraApiApplication` (em `src/test/java`) para subir com o banco do Testcontainers, ou `JuridoraApiApplication` com um PostgreSQL configurado.
 
 | Endereço | Conteúdo |
 |---|---|
@@ -45,8 +45,8 @@ tcc-backend-ads-ifba
 ├── docker/postgres                    ← scripts do PostgreSQL local (usuários app_owner/app_user)
 └── src
     ├── main
-    │   ├── java/br/com/leija
-    │   │   ├── TccBackendAdsIfbaApplication.java  ← classe principal (pacote raiz)
+    │   ├── java/br/com/juridora
+    │   │   ├── JuridoraApiApplication.java        ← classe principal (pacote raiz)
     │   │   ├── compartilhado          ← tipos base, exceções, TenantContext, segurança
     │   │   │   ├── dominio
     │   │   │   ├── excecao
@@ -69,11 +69,11 @@ tcc-backend-ads-ifba
     │       ├── application.yaml       ← configuração (perfis em application-{perfil}.yaml)
     │       └── db/migration           ← migrações Flyway (V{n}__descricao.sql), com RLS
     └── test
-        ├── java/br/com/leija
-        │   ├── TestcontainersConfiguration.java    ← PostgreSQL em contêiner (@ServiceConnection)
-        │   ├── TestTccBackendAdsIfbaApplication.java ← executa a aplicação com o Testcontainers
-        │   ├── TccBackendAdsIfbaApplicationTests.java
-        │   ├── arquitetura            ← ApplicationModules.verify() e ArchUnit
+        ├── java/br/com/juridora
+        │   ├── TestcontainersConfiguration.java     ← PostgreSQL em contêiner (@ServiceConnection)
+        │   ├── TestJuridoraApiApplication.java      ← executa a aplicação com o Testcontainers
+        │   ├── JuridoraApiApplicationTests.java
+        │   ├── arquitetura            ← ModularidadeTest (ApplicationModules.verify()) e ArchUnit
         │   ├── isolamento             ← testes multi-tenant com Testcontainers
         │   └── <um pacote por módulo>
         └── resources
