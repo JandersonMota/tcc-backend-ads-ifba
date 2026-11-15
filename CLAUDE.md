@@ -31,6 +31,10 @@ Sistema de Gestão Jurídica SaaS multi-tenant para escritórios de advocacia (M
 - Spring Security / OAuth2 Resource Server estão **comentados no `pom.xml`** até o emissor do JWT ser definido; não escolha o emissor por conta própria.
 - Detalhes de implementação (multi-tenancy, eventos, testes, estrutura de módulos): skill `.claude/skills/arquitetura-gestao-juridica`.
 
+## CI
+- GitHub Actions (`.github/workflows/ci.yml`) roda `./mvnw -B verify` com JDK 25 a cada push e PR; Dependabot em `.github/dependabot.yml`.
+- Trabalho em branches (`feat/`, `fix/`, `chore/`...) com merge na `main` por pull request com CI verde (ver `doc-mvp/07-codigo-e-desenvolvimento/fluxo-de-trabalho-git.md`).
+
 ## Comandos
 - `./mvnw verify` — compila e roda todos os testes (requer Docker para o Testcontainers).
 - `./mvnw test -Dtest=ModularidadeTest` — verifica fronteiras entre módulos (não requer Docker).
