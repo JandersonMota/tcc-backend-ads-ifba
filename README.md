@@ -12,10 +12,10 @@ Arquitetura: **monólito modular** (Spring Modulith) + **DDD** + **Hexagonal** (
 | Framework | Spring Boot 4.1.2 (Spring Framework 7.0) |
 | Persistência | Spring Data JPA / Hibernate 7.4 · PostgreSQL · Flyway 12.4 |
 | Modularidade | Spring Modulith 2.1.1 (core, JPA, actuator, observability) |
-| Segurança | Spring Security 7.1 + JWT (OAuth2 Resource Server) · Validation |
+| Segurança | Spring Security 7.1 + JWT (OAuth2 Resource Server) *(comentado no `pom.xml` até o emissor do JWT ser definido)* · Validation |
 | API | Spring Web MVC · SpringDoc OpenAPI 3.2.0 (Swagger UI) |
 | Observabilidade | Spring Boot Actuator |
-| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit *(a adicionar)* |
+| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit (via Spring Modulith Test) · JaCoCo |
 
 Versões não declaradas no `pom.xml` são as gerenciadas pelo Spring Boot 4.1.2. H2 não é usado: o RLS só é testado no PostgreSQL real.
 
@@ -24,11 +24,34 @@ Versões não declaradas no `pom.xml` são as gerenciadas pelo Spring Boot 4.1.2
 Pré-requisitos: JDK 25 e Docker em execução.
 
 ```bash
-./mvnw spring-boot:test-run    # sobe a aplicação com PostgreSQL via Testcontainers
-./mvnw verify                  # compila e executa todos os testes
+./mvnw spring-boot:test-run              # sobe a aplicação com PostgreSQL via Testcontainers
+./mvnw verify                            # compila e executa todos os testes (relatório JaCoCo em target/site/jacoco)
+./mvnw test -Dtest=ModularidadeTest      # só as fronteiras entre módulos (não precisa de Docker)
 ```
 
-No Windows, use `mvnw.cmd`. No IntelliJ, execute `TestJuridoraApiApplication` (em `src/test/java`) para subir com o banco do Testcontainers, ou `JuridoraApiApplication` com um PostgreSQL configurado.
+No Windows, use `mvnw.cmd`. No IntelliJ, execute `TestJuridoraApiApplication` (em `src/test/java`) para subir com o banco do Testcontainers, ou `JuridoraApiApplication` com o perfil `local` (abaixo).
+
+### PostgreSQL local (Docker Compose)
+
+Banco persistente, com nome fixo, para desenvolvimento e acesso pelo IntelliJ/pgAdmin:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d          # sobe o contêiner juridora-postgres
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local    # aplicação usando esse banco
+docker compose -f docker/docker-compose.yml down           # para (mantém os dados)
+docker compose -f docker/docker-compose.yml down -v        # para e apaga os dados
+```
+
+| Item | Valor padrão |
+|---|---|
+| Contêiner / imagem | `juridora-postgres` / `postgres:18.7` |
+| Host / porta / banco | `localhost` / `5432` / `juridora` |
+| Superusuário (só administração) | `postgres` / `postgres` |
+| Flyway (dono das tabelas) | `app_owner` / `app_owner` |
+| Aplicação (sem `BYPASSRLS`, só DML) | `app_user` / `app_user` |
+| Volume de dados | `juridora-postgres-dados` |
+
+Senhas, porta e perfil do Spring ficam em `docker/.env`, que **não é versionado** (está no `.gitignore`). Sem ele, valem os padrões da tabela acima. O IntelliJ pode carregá-lo na configuração de execução (EnvFile). Os usuários são criados por `docker/postgres/01-criar-usuarios.sh` apenas na primeira criação do volume. Depois de mudar o script ou as senhas, rode `down -v` para recriar o banco.
 
 | Endereço | Conteúdo |
 |---|---|
@@ -42,12 +65,15 @@ Configuração completa do ambiente: [`configuracao-do-ambiente.md`](../tcc-ads-
 
 ```
 tcc-backend-ads-ifba
-├── docker/postgres                    ← scripts do PostgreSQL local (usuários app_owner/app_user)
+├── docker
+│   ├── docker-compose.yml             ← contêiner juridora-postgres (PostgreSQL 18.7)
+│   ├── .env                           ← senhas, porta e perfil local (não versionado)
+│   └── postgres                       ← scripts de inicialização (usuários app_owner/app_user)
 └── src
     ├── main
     │   ├── java/br/com/juridora
     │   │   ├── JuridoraApiApplication.java        ← classe principal (pacote raiz)
-    │   │   ├── compartilhado          ← tipos base, exceções, TenantContext, segurança
+    │   │   ├── compartilhado          ← módulo aberto (shared kernel): tipos base, exceções, TenantContext, segurança
     │   │   │   ├── dominio
     │   │   │   ├── excecao
     │   │   │   └── infraestrutura
@@ -67,7 +93,8 @@ tcc-backend-ads-ifba
     │   │   └── portabilidade          ← aplicacao + adaptador (sem domínio próprio)
     │   └── resources
     │       ├── application.yaml       ← configuração (perfis em application-{perfil}.yaml)
-    │       └── db/migration           ← migrações Flyway (V{n}__descricao.sql), com RLS
+    │       ├── application-local.yaml ← perfil local: banco do docker-compose
+    │       └── db/migration           ← migrações Flyway (V{n}__descricao.sql), com RLS; V1 = event_publication (Spring Modulith)
     └── test
         ├── java/br/com/juridora
         │   ├── TestcontainersConfiguration.java     ← PostgreSQL em contêiner (@ServiceConnection)

@@ -30,7 +30,7 @@ Itens marcados como "a definir" no README (framework do frontend, emissor do JWT
 2. **Toda tabela de negócio tem `tenant_id`**, mapeado com Hibernate `@TenantId`, e uma **política de RLS** criada na mesma migração Flyway.
 3. **O `tenant_id` vem sempre do token JWT** do usuário autenticado. Nunca aceite tenant por parâmetro, path, header ou corpo da requisição, nem em DTOs de entrada.
 4. **Cada módulo é dono das suas tabelas.** Proibido JOIN, `@ManyToOne` ou repositório apontando para tabela de outro módulo; referencie outro agregado apenas pelo ID.
-5. **Um módulo só acessa outro pela API pública** (tipos no pacote raiz do módulo ou pacotes marcados com `@NamedInterface`). Nunca importe `dominio`, `aplicacao` ou `adaptador` de outro módulo.
+5. **Um módulo só acessa outro pela API pública** (tipos no pacote raiz do módulo ou pacotes marcados com `@NamedInterface`). Nunca importe `dominio`, `aplicacao` ou `adaptador` de outro módulo. Exceção: `compartilhado` é um módulo aberto (`Type.OPEN`) e seus subpacotes podem ser usados por todos.
 6. **Efeitos colaterais entre módulos via eventos de domínio** (notificação, auditoria). Chamada síncrona só quando a resposta é necessária na hora.
 7. **O schema é criado só pelo Flyway.** `spring.jpa.hibernate.ddl-auto` deve ser `validate` (ou `none`), nunca `update`/`create`.
 8. **Controllers são adaptadores de entrada dentro do módulo** (`adaptador/entrada/web`). Não existe camada "API/BFF" separada.

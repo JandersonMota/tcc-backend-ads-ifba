@@ -24,18 +24,18 @@ void naoPermiteDelegarAtividadeConcluida() {
 
 ## Integração com Testcontainers
 
+Reutilize o `TestcontainersConfiguration` do projeto (PostgreSQL 18 com `@ServiceConnection`), em vez de declarar um contêiner por classe:
+
 ```java
 @SpringBootTest
-@Testcontainers
+@Import(TestcontainersConfiguration.class)
 class ClientePersistenciaIT {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
 
     // as migrações Flyway rodam na inicialização, criando tabelas e políticas de RLS
 }
 ```
+
+No Testcontainers 2 a classe é `org.testcontainers.postgresql.PostgreSQLContainer` (sem parâmetro genérico).
 
 Para validar o RLS, a aplicação no teste deve conectar com o mesmo tipo de usuário da produção (sem `SUPERUSER`/`BYPASSRLS`).
 

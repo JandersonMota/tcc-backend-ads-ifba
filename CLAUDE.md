@@ -22,8 +22,17 @@ Sistema de Gestão Jurídica SaaS multi-tenant para escritórios de advocacia (M
 - Um módulo só acessa outro pela API pública; nunca pelo `dominio` ou `adaptador` interno.
 - Efeitos colaterais entre módulos (notificação, auditoria) via eventos de domínio.
 - Schema do banco criado apenas por migrações Flyway (incluindo políticas de RLS), nunca pelo Hibernate.
-- DDD tático completo em `autorizacao`, `escritorio`, `atividade`, `processo`, `financeiro`; estrutura simplificada em `cliente`, categorias e `portabilidade`.
+- DDD tático completo em `autorizacao`, `escritorio`, `atividade`, `processo`, `financeiro`; estrutura simplificada em `identidade`, `cliente`, `documento`, `notificacao`, `auditoria`, `portabilidade` e cadastros auxiliares (categorias).
+- `compartilhado` é um módulo aberto (shared kernel, `@ApplicationModule(type = OPEN)`): pode ser usado por todos, mas não depende de nenhum módulo de negócio.
+- `spring.jpa.hibernate.ddl-auto` é `validate`; tabelas de infraestrutura (ex.: `event_publication` do Spring Modulith) também vêm do Flyway.
 - Pacotes e módulos (backend e frontend) em **português**, minúsculas e sem acentos (ex.: `processo`, `notificacao`, `adaptador.entrada.web`).
 
-## Regras do Sistema de Design
-Essas regras previnem as inconsistências visuais encontradas e corrigidas na auditoria de UI/UX. Siga-as rigorosamente ao escrever ou editar qualquer componente.
+## Estado atual
+- Spring Security / OAuth2 Resource Server estão **comentados no `pom.xml`** até o emissor do JWT ser definido; não escolha o emissor por conta própria.
+- Detalhes de implementação (multi-tenancy, eventos, testes, estrutura de módulos): skill `.claude/skills/arquitetura-gestao-juridica`.
+
+## Comandos
+- `./mvnw verify` — compila e roda todos os testes (requer Docker para o Testcontainers).
+- `./mvnw test -Dtest=ModularidadeTest` — verifica fronteiras entre módulos (não requer Docker).
+- `./mvnw spring-boot:test-run` — sobe a aplicação com PostgreSQL via Testcontainers.
+- `docker compose -f docker/docker-compose.yml up -d` + `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` — aplicação com o banco persistente `juridora-postgres` (Flyway como `app_owner`, aplicação como `app_user`, sem `BYPASSRLS`).

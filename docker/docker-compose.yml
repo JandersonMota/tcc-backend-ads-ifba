@@ -1,0 +1,37 @@
+# PostgreSQL local do Juridora (desenvolvimento).
+#   Subir:   docker compose -f docker/docker-compose.yml up -d
+#   Parar:   docker compose -f docker/docker-compose.yml down
+#   Zerar:   docker compose -f docker/docker-compose.yml down -v   (apaga os dados)
+#
+# Senhas, porta e perfil do Spring: docker/.env (não versionado, está no .gitignore).
+# Os scripts de docker/postgres só rodam na PRIMEIRA criação do volume.
+
+name: juridora
+
+services:
+  juridora-postgres:
+    image: postgres:18.7            # mesma série usada nos testes (Testcontainers)
+    container_name: juridora-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-juridora}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}               # superusuário: só administração
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      APP_OWNER_SENHA: ${APP_OWNER_SENHA:-app_owner}          # dono das tabelas (Flyway)
+      APP_USER_SENHA: ${APP_USER_SENHA:-app_user}             # usado pela aplicação (sem BYPASSRLS)
+      TZ: America/Bahia
+    ports:
+      - "${POSTGRES_PORTA:-5432}:5432"
+    volumes:
+      # PostgreSQL 18+: o volume é montado em /var/lib/postgresql (PGDATA fica em 18/docker)
+      - juridora-postgres-dados:/var/lib/postgresql
+      - ./postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  juridora-postgres-dados:
+    name: juridora-postgres-dados

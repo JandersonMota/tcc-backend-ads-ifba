@@ -1,0 +1,14 @@
+# Perfil "local": usa o PostgreSQL do docker/docker-compose.yml (contêiner juridora-postgres).
+# Ativar: --spring.profiles.active=local (ou SPRING_PROFILES_ACTIVE=local).
+# Os valores padrão batem com docker/.env; sobrescreva pelas variáveis de ambiente.
+spring:
+  datasource:
+    # A aplicação conecta como app_user (sem BYPASSRLS): o RLS é aplicado.
+    url: jdbc:postgresql://localhost:${POSTGRES_PORTA:5432}/${POSTGRES_DB:juridora}
+    username: app_user
+    password: ${APP_USER_SENHA:app_user}
+
+  flyway:
+    # O Flyway conecta como app_owner, dono das tabelas e das políticas de RLS.
+    user: app_owner
+    password: ${APP_OWNER_SENHA:app_owner}
