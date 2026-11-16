@@ -37,6 +37,6 @@ Sistema de Gestão Jurídica SaaS multi-tenant para escritórios de advocacia (M
 
 ## Comandos
 - `./mvnw verify` — compila e roda todos os testes (requer Docker para o Testcontainers).
-- `./mvnw test -Dtest=ModularidadeTest` — verifica fronteiras entre módulos (não requer Docker).
+- `./mvnw test -Dtest="ModularidadeTest,CamadasTest"` — verifica fronteiras entre módulos e camadas (não requer Docker).
 - `./mvnw spring-boot:test-run` — sobe a aplicação com PostgreSQL via Testcontainers.
 - `docker compose -f docker/docker-compose.yml up -d` + `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` — aplicação com o banco persistente `juridora-postgres` (Flyway como `app_owner`, aplicação como `app_user`, sem `BYPASSRLS`).

@@ -17,7 +17,7 @@ Arquitetura: **monólito modular** (Spring Modulith) + **DDD** + **Hexagonal** (
 | Segurança | Spring Security 7.1 + JWT (OAuth2 Resource Server) *(comentado no `pom.xml` até o emissor do JWT ser definido)* · Validation |
 | API | Spring Web MVC · SpringDoc OpenAPI 3.2.0 (Swagger UI) |
 | Observabilidade | Spring Boot Actuator |
-| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit (via Spring Modulith Test) · JaCoCo |
+| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit 1.4.2 (via Spring Modulith) · JaCoCo |
 
 Versões não declaradas no `pom.xml` são as gerenciadas pelo Spring Boot 4.1.2. H2 não é usado: o RLS só é testado no PostgreSQL real.
 
@@ -28,7 +28,7 @@ Pré-requisitos: JDK 25 e Docker em execução.
 ```bash
 ./mvnw spring-boot:test-run              # sobe a aplicação com PostgreSQL via Testcontainers
 ./mvnw verify                            # compila e executa todos os testes (relatório JaCoCo em target/site/jacoco)
-./mvnw test -Dtest=ModularidadeTest      # só as fronteiras entre módulos (não precisa de Docker)
+./mvnw test -Dtest="ModularidadeTest,CamadasTest"  # só os testes de arquitetura (não precisa de Docker)
 ```
 
 No Windows, use `mvnw.cmd`. No IntelliJ, execute `TestJuridoraApiApplication` (em `src/test/java`) para subir com o banco do Testcontainers, ou `JuridoraApiApplication` com o perfil `local` (abaixo).
@@ -105,7 +105,7 @@ tcc-backend-ads-ifba
         │   ├── TestcontainersConfiguration.java     ← PostgreSQL em contêiner (@ServiceConnection)
         │   ├── TestJuridoraApiApplication.java      ← executa a aplicação com o Testcontainers
         │   ├── JuridoraApiApplicationTests.java
-        │   ├── arquitetura            ← ModularidadeTest (ApplicationModules.verify()) e ArchUnit
+        │   ├── arquitetura            ← ModularidadeTest (fronteiras entre módulos) e CamadasTest (ArchUnit: camadas dentro do módulo)
         │   ├── isolamento             ← testes multi-tenant com Testcontainers
         │   └── <um pacote por módulo>
         └── resources
