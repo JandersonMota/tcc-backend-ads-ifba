@@ -24,20 +24,21 @@ void naoPermiteDelegarAtividadeConcluida() {
 
 ## Integração com Testcontainers
 
-Reutilize o `TestcontainersConfiguration` do projeto (PostgreSQL 18 com `@ServiceConnection`), em vez de declarar um contêiner por classe:
+Reutilize o `TestcontainersConfiguration` do projeto, em vez de declarar um contêiner por classe. Ele sobe o PostgreSQL 18, roda `docker/postgres/01-criar-usuarios.sh` e conecta o **Flyway como `app_owner`** e a **aplicação como `app_user`** (sem `SUPERUSER`/`BYPASSRLS`, igual à produção), de modo que o RLS vale nos testes. Por isso não usa `@ServiceConnection`; as propriedades vêm de um `DynamicPropertyRegistrar`.
 
 ```java
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-class ClientePersistenciaIT {
+class ClienteIsolamentoIT {
 
     // as migrações Flyway rodam na inicialização, criando tabelas e políticas de RLS
 }
 ```
 
-No Testcontainers 2 a classe é `org.testcontainers.postgresql.PostgreSQLContainer` (sem parâmetro genérico).
-
-Para validar o RLS, a aplicação no teste deve conectar com o mesmo tipo de usuário da produção (sem `SUPERUSER`/`BYPASSRLS`).
+- **Sufixos:** `*Test` roda no Surefire (`test`); `*IT` roda no **Failsafe** (`verify`). Ambos rodam no `./mvnw verify` e no CI. Um teste de integração com outro sufixo não roda.
+- No Testcontainers 2 a classe é `org.testcontainers.postgresql.PostgreSQLContainer` (sem parâmetro genérico).
+- Defina o tenant com `TenantContext.executarComo` e acesse dados **dentro de transação** (caso de uso `@Transactional` ou `TransactionTemplate`), como na aplicação real.
+- Migrações só de teste ficam em `src/test/resources/db/migration-teste` (aplicadas apenas pelo `TestcontainersConfiguration`).
 
 ## Autorização
 
@@ -59,6 +60,11 @@ Usuário com permissão → ação protegida           → PERMITIDO
 3. **Sem tenant definido:** consultas não retornam nenhuma linha.
 
 Inclua também tentativas de manipulação da requisição (ex.: enviar `tenantId` no corpo ou em header) e verifique que são ignoradas.
+
+A infraestrutura (HU03) é coberta por `src/test/java/br/com/juridora/isolamento/IsolamentoMultiTenantIT.java`, sobre a tabela de teste `registro_isolamento`. Use-o como modelo para os testes de isolamento de cada recurso novo. Ele inclui:
+- `CamadaAplicacaoSozinha`: desliga o RLS da tabela (como `app_owner`) para provar que o `@TenantId` isola sozinho;
+- `CamadaBanco`: SQL nativo/JDBC (sem filtro do Hibernate) para provar que o RLS isola sozinho;
+- pool com **uma conexão** para provar que o tenant não vaza para a transação seguinte.
 
 ## Arquitetura
 

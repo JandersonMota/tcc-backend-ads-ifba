@@ -46,16 +46,25 @@ package br.com.juridora.notificacao.adaptador.entrada.evento;
 @Component
 class AtividadeDelegadaListener {
 
-    @ApplicationModuleListener
+    private final TenantContext tenantContext;
+    private final NotificarUsuarioUseCase notificar;   // @Transactional
+
+    // construtor omitido
+
+    @Async
+    @TransactionalEventListener   // após o commit; SEM @Transactional aqui
     void aoDelegarAtividade(AtividadeDelegadaEvent evento) {
-        // notifica o usuário delegado
+        tenantContext.executarComo(evento.tenantId(), evento.executadoPor(),
+                () -> notificar.executar(evento.delegadoPara(), evento.atividadeId()));
     }
 }
 ```
 
-- `@ApplicationModuleListener` executa **após o commit**, de forma assíncrona e em nova transação.
+- Os eventos implementam `compartilhado.dominio.EventoDominio` (`tenantId()`, `ocorridoEm()`).
+- O listener executa **após o commit**, de forma assíncrona (`@Async` + `@TransactionalEventListener`; habilitar `@EnableAsync`).
 - Usar o **Event Publication Registry** do Spring Modulith (`spring-modulith-starter-jpa`), que persiste a publicação e permite reprocessar eventos cujo consumidor falhou, garantindo que não sejam perdidos.
-- Como o consumidor não tem JWT, ele deve **definir o tenant a partir do `tenantId` do evento** antes de acessar dados (mesmo mecanismo do `TenantContext`/`set_config`).
+- Como o consumidor não tem JWT, ele **define o tenant a partir do `tenantId` do evento** com `TenantContext.executarComo` e só então chama o caso de uso `@Transactional`.
+- **Não use `@ApplicationModuleListener` em listeners que acessam dados**: ele abre a transação (`REQUIRES_NEW`) *antes* do corpo do método, quando ainda não há tenant, e o `executarComo` falha com `IllegalStateException` (ver `multi-tenancy.md`, "Tenant antes da transação").
 
 Exemplos do projeto:
 

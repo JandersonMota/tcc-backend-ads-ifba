@@ -5,100 +5,95 @@
 **Schema compartilhado + coluna `tenant_id`**, com duas camadas de defesa:
 
 ```
-Requisição → JWT → tenant_id → Filtro da aplicação (Hibernate @TenantId) → RLS no PostgreSQL
+Requisição → JWT → tenant_id → TenantContext → Filtro da aplicação (Hibernate @TenantId) → RLS no PostgreSQL
 ```
 
 Mesmo que alguém esqueça um `WHERE tenant_id = ?`, o banco impede o acesso a dados de outro escritório.
 
 Alternativas descartadas (não proponha sem pedido explícito): schema por tenant (complica Flyway, testes e operação) e banco por tenant (excessivo para o MVP).
 
+A infraestrutura já está implementada (HU03, ADR-012) em `compartilhado`. **Reutilize; não recrie.**
+
+| Classe | Pacote | Papel |
+|---|---|---|
+| `TenantContext` | `compartilhado.infraestrutura.tenant` | Tenant e usuário da execução atual (`ScopedValue`) |
+| `TenantIdentifierResolver` | idem | Informa ao Hibernate o tenant da sessão (camada 1) |
+| `TenantJpaTransactionManager` | idem | `set_config('app.tenant_id', …, true)` no início de cada transação (camada 2) |
+| `ColunasDeControleInterceptor` | idem | Preenche `created_at`, `updated_at`, `created_by` |
+| `EntidadeTenant` | `compartilhado.dominio` | Base das entidades de negócio (`id`, `@TenantId tenantId`, colunas de controle) |
+| `EventoDominio` | `compartilhado.dominio` | Interface dos eventos (`tenantId()`, `ocorridoEm()`) |
+
 ## Origem do tenant
 
-- O `tenant_id` é uma **claim do JWT** emitido no login.
-- É lido do `SecurityContext` em um componente do `compartilhado` (ex.: `TenantContext`), nunca de parâmetro, path, header ou corpo.
+- O `tenant_id` é uma **claim do JWT** emitido no login. Nunca vem de parâmetro, path, header ou corpo.
+- `TenantContext` guarda o tenant (e o usuário) da execução em um `ScopedValue`: vale só dentro de `executarComo`, não vaza entre requisições nem entre threads.
+- Quem chama `executarComo` é sempre um **adaptador de entrada confiável**:
+  - HTTP: filtro do Spring Security, a partir do JWT validado (**entra com a HU06**, quando o emissor for definido);
+  - listener de evento: a partir de `evento.tenantId()` (ver `comunicacao-eventos.md`);
+  - testes: diretamente.
+- Casos de uso e domínio **leem** (`tenantAtual()`, `usuarioAtual()`), nunca definem.
 - Operações sem tenant (criar escritório, login) são exceções explícitas e ficam restritas aos módulos `escritorio` e `identidade`.
 
 ```java
-package br.com.juridora.compartilhado.infraestrutura.tenant;
+// leitura (caso de uso, adaptador)
+UUID escritorio = tenantContext.tenantAtual();        // TenantNaoDefinidoException se não houver
+Optional<UUID> usuario = tenantContext.usuarioOpcional();
 
-@Component
-public class TenantContext {
-
-    public UUID currentTenantId() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof JwtAuthenticationToken jwt) {
-            return UUID.fromString(jwt.getToken().getClaimAsString("tenant_id"));
-        }
-        throw new IllegalStateException("Requisição sem tenant autenticado");
-    }
-}
+// definição (somente adaptadores de entrada e testes)
+tenantContext.executarComo(tenantId, usuarioId, () -> casoDeUso.executar(comando));
 ```
 
+### Tenant antes da transação
+
+O tenant deve ser definido **antes** de abrir a transação: é no início dela que o Hibernate fixa o tenant da sessão e que o `set_config` é executado. `executarComo` com transação já ativa lança `IllegalStateException` (falha cedo em vez de vazar). Consequências:
+
+- Controllers e listeners **não** são `@Transactional`; quem abre a transação é o caso de uso.
+- Não use `@ApplicationModuleListener` em listeners que acessam dados (ele abre a transação antes do método).
+
+### Acesso a dados sempre dentro de transação
+
+Fora de transação não há `app.tenant_id`, e o RLS não retorna nenhuma linha (falha segura). Métodos de consulta declarados em interfaces do Spring Data (`@Query`, `findByX`) **não são transacionais por padrão**: chame-os a partir de um caso de uso `@Transactional` (ou `@Transactional(readOnly = true)` nas consultas).
+
 ## Camada 1: Hibernate `@TenantId`
+
+Entidades de negócio estendem `EntidadeTenant`, que já declara o `@TenantId`:
 
 ```java
 @Entity
 @Table(name = "cliente")
-class ClienteEntity {
-    @Id
-    private UUID id;
-
-    @TenantId
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private UUID tenantId;
+class ClienteEntity extends EntidadeTenant {
+    @Column(nullable = false, length = 200)
+    private String nome;
     // ...
 }
 ```
 
-O Hibernate preenche `tenant_id` ao inserir e filtra as consultas automaticamente, usando um `CurrentTenantIdentifierResolver`:
-
-```java
-@Component
-class TenantIdentifierResolver implements CurrentTenantIdentifierResolver<UUID>, HibernatePropertiesCustomizer {
-
-    private final TenantContext tenantContext;
-
-    TenantIdentifierResolver(TenantContext tenantContext) {
-        this.tenantContext = tenantContext;
-    }
-
-    @Override
-    public UUID resolveCurrentTenantIdentifier() {
-        return tenantContext.currentTenantId();
-    }
-
-    @Override
-    public boolean validateExistingCurrentSessions() {
-        return true;
-    }
-
-    @Override
-    public void customize(Map<String, Object> properties) {
-        properties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, this);
-    }
-}
-```
-
-Atenção: consultas nativas (`nativeQuery = true`) **não** recebem o filtro do Hibernate; nelas, o RLS é a proteção. Prefira JPQL/Spring Data.
+- O Hibernate preenche `tenant_id` ao inserir e filtra as consultas JPQL/Spring Data e as buscas por ID com o tenant do `TenantIdentifierResolver`.
+- `tenantId` não tem setter e nunca aparece em DTO de entrada.
+- Sem tenant, o resolver devolve um UUID que não corresponde a nenhum escritório: consultas voltam vazias e inserções são rejeitadas.
+- Consultas nativas (`nativeQuery = true`) e JDBC **não** recebem o filtro do Hibernate; nelas, o RLS é a proteção. Prefira JPQL/Spring Data.
 
 ## Camada 2: Row-Level Security
 
-A aplicação define o tenant da transação no PostgreSQL e a política filtra as linhas:
+`TenantJpaTransactionManager` executa no início de **cada** transação:
 
 ```sql
--- executado no início de cada transação de negócio (ex.: aspecto nos casos de uso @Transactional)
-SELECT set_config('app.tenant_id', :tenantId, true);  -- true = vale só para a transação
+SELECT set_config('app.tenant_id', '<tenant ou vazio>', true);  -- true = vale só para a transação
 ```
+
+JDBC (`JdbcTemplate`) dentro da transação usa a mesma conexão e também fica sujeito ao RLS.
 
 Modelo de migração Flyway para tabela de negócio:
 
 ```sql
 -- V3__criar_cliente.sql
 CREATE TABLE cliente (
-    id         UUID PRIMARY KEY,
-    tenant_id  UUID NOT NULL REFERENCES escritorio (id),
+    id         UUID         NOT NULL PRIMARY KEY,
+    tenant_id  UUID         NOT NULL REFERENCES escritorio (id),
     nome       VARCHAR(200) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ  NOT NULL,
+    updated_at TIMESTAMPTZ  NOT NULL,
+    created_by UUID
 );
 
 CREATE INDEX idx_cliente_tenant ON cliente (tenant_id);
@@ -106,23 +101,26 @@ CREATE INDEX idx_cliente_tenant ON cliente (tenant_id);
 ALTER TABLE cliente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cliente FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY tenant_isolation ON cliente
+CREATE POLICY isolamento_tenant ON cliente
     USING      (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid)
     WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 ```
 
 Cuidados:
 - Sem tenant definido, a expressão resulta em `NULL` e **nenhuma linha** é retornada (falha segura).
-- A aplicação deve conectar com um usuário **sem `SUPERUSER` nem `BYPASSRLS`**; o Flyway pode usar um usuário separado, dono das tabelas.
+- A aplicação conecta como `app_user` (**sem `SUPERUSER` nem `BYPASSRLS`**); o Flyway conecta como `app_owner`, dono das tabelas. Vale também nos testes (`TestcontainersConfiguration`).
 - `FORCE ROW LEVEL SECURITY` faz a política valer também para o dono da tabela.
 - Índices e chaves únicas de negócio começam por `tenant_id` (ex.: `UNIQUE (tenant_id, numero)`).
+- O modelo de referência, testado, é `src/test/resources/db/migration-teste/V9999__criar_registro_isolamento.sql`.
 
 ## Migrações Flyway
 
-- Padrão de nome do README: `V{n}__criar_{tabela}.sql` (ex.: `V1__criar_escritorio.sql`, `V4__criar_processo.sql`).
+- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith) e `V2__criar_escritorio.sql`; a próxima é `V3`.
 - Uma migração aplicada nunca é editada; correções vão em nova versão.
 - Toda tabela de negócio nasce com `tenant_id`, índice e RLS na **mesma** migração.
 - Tabelas pertencem a um único módulo; não crie FKs entre tabelas de módulos diferentes (exceto para `escritorio`, que é referência comum).
+- `escritorio` não tem RLS por `tenant_id` (é o próprio tenant).
+- Migrações só de teste ficam em `src/test/resources/db/migration-teste`, com versão alta (`V9999`).
 
 ## Autorização
 
