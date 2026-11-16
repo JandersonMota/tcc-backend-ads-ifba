@@ -96,4 +96,6 @@ As camadas **dentro** de cada módulo são verificadas pelo ArchUnit em `src/tes
 
 As regras usam `allowEmptyShould(true)`: passam com os pacotes vazios e valem automaticamente quando o código chegar. Ao criar uma regra nova, confirme que ela falha com uma classe que a viola antes de confiar nela.
 
+O ArchUnit chega transitivamente pelo Spring Modulith. **Não o declare no `pom.xml` com `<scope>test</scope>`**: o `spring-modulith-runtime` usa o ArchUnit em tempo de execução, e a declaração direta rebaixaria o escopo, fazendo a aplicação falhar ao subir (`NoClassDefFoundError: com/tngtech/archunit/core/importer/ImportOption`).
+
 Spring Modulith também gera documentação dos módulos (`Documenter`), útil para o documento do TCC. O `ModularidadeTest` já a gera em `target/spring-modulith-docs/`.

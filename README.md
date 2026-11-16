@@ -17,7 +17,7 @@ Arquitetura: **monólito modular** (Spring Modulith) + **DDD** + **Hexagonal** (
 | Segurança | Spring Security 7.1 + JWT (OAuth2 Resource Server) *(comentado no `pom.xml` até o emissor do JWT ser definido)* · Validation |
 | API | Spring Web MVC · SpringDoc OpenAPI 3.2.0 (Swagger UI) |
 | Observabilidade | Spring Boot Actuator |
-| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit 1.4.2 · JaCoCo |
+| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit 1.4.2 (via Spring Modulith) · JaCoCo |
 
 Versões não declaradas no `pom.xml` são as gerenciadas pelo Spring Boot 4.1.2. H2 não é usado: o RLS só é testado no PostgreSQL real.
 
