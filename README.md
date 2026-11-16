@@ -27,7 +27,7 @@ Pré-requisitos: JDK 25 e Docker em execução.
 
 ```bash
 ./mvnw spring-boot:test-run              # sobe a aplicação com PostgreSQL via Testcontainers
-./mvnw verify                            # compila e executa todos os testes (relatório JaCoCo em target/site/jacoco)
+./mvnw verify                            # compila e executa todos os testes, unitários (*Test) e de integração (*IT); relatório JaCoCo em target/site/jacoco
 ./mvnw test -Dtest="ModularidadeTest,CamadasTest"  # só os testes de arquitetura (não precisa de Docker)
 ```
 
@@ -99,16 +99,17 @@ tcc-backend-ads-ifba
     │   └── resources
     │       ├── application.yaml       ← configuração (perfis em application-{perfil}.yaml)
     │       ├── application-local.yaml ← perfil local: banco do docker-compose
-    │       └── db/migration           ← migrações Flyway (V{n}__descricao.sql), com RLS; V1 = event_publication (Spring Modulith)
+    │       └── db/migration           ← migrações Flyway (V{n}__descricao.sql), com RLS; V1 = event_publication (Spring Modulith), V2 = escritorio
     └── test
         ├── java/br/com/juridora
-        │   ├── TestcontainersConfiguration.java     ← PostgreSQL em contêiner (@ServiceConnection)
+        │   ├── TestcontainersConfiguration.java     ← PostgreSQL em contêiner; Flyway como app_owner, aplicação como app_user (sem BYPASSRLS)
         │   ├── TestJuridoraApiApplication.java      ← executa a aplicação com o Testcontainers
         │   ├── JuridoraApiApplicationTests.java
         │   ├── arquitetura            ← ModularidadeTest (fronteiras entre módulos) e CamadasTest (ArchUnit: camadas dentro do módulo)
-        │   ├── isolamento             ← testes multi-tenant com Testcontainers
+        │   ├── isolamento             ← IsolamentoMultiTenantIT: @TenantId e RLS (HU03)
         │   └── <um pacote por módulo>
         └── resources
+            └── db/migration-teste     ← tabela registro_isolamento, usada só nos testes de isolamento
 ```
 
 ### Módulo com DDD tático completo
