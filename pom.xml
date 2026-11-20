@@ -31,6 +31,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
+		<!-- Só o hash de senha (BCrypt, RNF03): não liga a autoconfiguração do Spring Security -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
 		<!-- Segurança desativada até o emissor do JWT ser definido (ver README) -->
 		<!--dependency>
 			<groupId>org.springframework.boot</groupId>
