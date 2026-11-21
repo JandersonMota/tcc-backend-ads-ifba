@@ -86,7 +86,7 @@ JDBC (`JdbcTemplate`) dentro da transação usa a mesma conexão e também fica 
 Modelo de migração Flyway para tabela de negócio:
 
 ```sql
--- V3__criar_cliente.sql
+-- V5__criar_cliente.sql
 CREATE TABLE cliente (
     id         UUID         NOT NULL PRIMARY KEY,
     tenant_id  UUID         NOT NULL REFERENCES escritorio (id),
@@ -110,12 +110,14 @@ Cuidados:
 - Sem tenant definido, a expressão resulta em `NULL` e **nenhuma linha** é retornada (falha segura).
 - A aplicação conecta como `app_user` (**sem `SUPERUSER` nem `BYPASSRLS`**); o Flyway conecta como `app_owner`, dono das tabelas. Vale também nos testes (`TestcontainersConfiguration`).
 - `FORCE ROW LEVEL SECURITY` faz a política valer também para o dono da tabela.
-- Índices e chaves únicas de negócio começam por `tenant_id` (ex.: `UNIQUE (tenant_id, numero)`).
+- Índices e chaves únicas de negócio começam por `tenant_id` (ex.: `UNIQUE (tenant_id, numero)`). Exceção: `usuario.email` é único na plataforma (`uk_usuario_email`); a restrição vale para a tabela inteira mesmo com RLS.
+- **Tabelas de coleção** (`@ElementCollection`, ex.: `grupo_permissao`): o Hibernate não preenche `@TenantId` nelas. Use `tenant_id UUID NOT NULL DEFAULT NULLIF(current_setting('app.tenant_id', true), '')::uuid`; o `WITH CHECK` continua validando (ver `V4__criar_grupo.sql`).
+- Toda tabela com `tenant_id` precisa de RLS `ENABLE` + `FORCE` e de política: o `RlsTodaTabelaNegocioIT` falha caso contrário.
 - O modelo de referência, testado, é `src/test/resources/db/migration-teste/V9999__criar_registro_isolamento.sql`.
 
 ## Migrações Flyway
 
-- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith) e `V2__criar_escritorio.sql`; a próxima é `V3`.
+- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith), `V2__criar_escritorio.sql`, `V3__criar_usuario.sql` e `V4__criar_grupo.sql` (HU05); a próxima é `V5`.
 - Uma migração aplicada nunca é editada; correções vão em nova versão.
 - Toda tabela de negócio nasce com `tenant_id`, índice e RLS na **mesma** migração.
 - Tabelas pertencem a um único módulo; não crie FKs entre tabelas de módulos diferentes (exceto para `escritorio`, que é referência comum).

@@ -30,6 +30,8 @@ Sistema de Gestão Jurídica SaaS multi-tenant para escritórios de advocacia (M
 ## Estado atual
 - Spring Security / OAuth2 Resource Server estão **comentados no `pom.xml`** até o emissor do JWT ser definido; não escolha o emissor por conta própria.
 - Infraestrutura de tenant pronta (HU03, ADR-012): `TenantContext` (`ScopedValue`, preenchido por adaptador de entrada), `@TenantId` via `EntidadeTenant` e `set_config('app.tenant_id')` no início de cada transação (`TenantJpaTransactionManager`). O filtro que lê o tenant do JWT entra com a HU06.
+- HU05 (cadastro de escritório, ADR-013): `POST /api/autenticacao/cadastro` em `identidade`, que coordena `EscritorioApi` e `AutorizacaoApi` em uma transação; migrações `V3` (usuario) e `V4` (grupo); próxima migração é a `V5`. `autorizacao` nunca depende de `identidade`.
+- Nomes em português, inclusive endpoints (`/api/processos`) e sufixos de camada (`CasoDeUso`, `Repositorio`); só `Controller`, `Request`, `Response`, `Event`, `Exception` e `Api` ficam em inglês (`doc-mvp/07-codigo-e-desenvolvimento/padroes-de-codigo.md`).
 - Detalhes de implementação (multi-tenancy, eventos, testes, estrutura de módulos): skill `.claude/skills/arquitetura-gestao-juridica`.
 
 ## CI
