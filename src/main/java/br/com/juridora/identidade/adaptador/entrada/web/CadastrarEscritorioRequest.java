@@ -1,6 +1,7 @@
 package br.com.juridora.identidade.adaptador.entrada.web;
 
 import br.com.juridora.identidade.aplicacao.CadastrarEscritorioComando;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -10,19 +11,23 @@ import jakarta.validation.constraints.Size;
  * é gerado pelo sistema, e um {@code tenantId} enviado no JSON é ignorado.
  */
 record CadastrarEscritorioRequest(
+		@Schema(example = "Silva & Associados")
 		@NotBlank(message = "O nome do escritório é obrigatório.")
 		@Size(max = 200, message = "O nome do escritório deve ter até 200 caracteres.")
 		String nomeEscritorio,
 
+		@Schema(example = "Ana Silva")
 		@NotBlank(message = "O nome é obrigatório.")
 		@Size(max = 200, message = "O nome deve ter até 200 caracteres.")
 		String nome,
 
+		@Schema(example = "ana@silva.adv.br")
 		@NotBlank(message = "O e-mail é obrigatório.")
 		@Email(message = "O e-mail é inválido.")
 		@Size(max = 254, message = "O e-mail deve ter até 254 caracteres.")
 		String email,
 
+		@Schema(example = "senha-forte-123", format = "password")
 		@NotBlank(message = "A senha é obrigatória.")
 		@Size(min = 8, max = 72, message = "A senha deve ter de 8 a 72 caracteres.")
 		String senha) {
