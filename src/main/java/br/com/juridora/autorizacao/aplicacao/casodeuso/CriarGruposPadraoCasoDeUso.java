@@ -2,7 +2,6 @@ package br.com.juridora.autorizacao.aplicacao.casodeuso;
 
 import java.util.UUID;
 
-import br.com.juridora.autorizacao.AutorizacaoApi;
 import br.com.juridora.autorizacao.dominio.modelo.Grupo;
 import br.com.juridora.autorizacao.dominio.modelo.GrupoPadrao;
 import br.com.juridora.autorizacao.dominio.repositorio.GrupoRepositorio;
@@ -10,9 +9,9 @@ import br.com.juridora.compartilhado.infraestrutura.tenant.TenantContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Cria os cinco grupos padrão no escritório da execução (HU05, RF05). */
+/** Cria os cinco grupos padrão no escritório da execução (HU05, RF05). Exposto por {@code AutorizacaoFachada}. */
 @Service
-class CriarGruposPadraoCasoDeUso implements AutorizacaoApi {
+public class CriarGruposPadraoCasoDeUso {
 
 	private final GrupoRepositorio grupos;
 	private final TenantContext tenantContext;
@@ -22,7 +21,6 @@ class CriarGruposPadraoCasoDeUso implements AutorizacaoApi {
 		this.tenantContext = tenantContext;
 	}
 
-	@Override
 	@Transactional
 	public UUID criarGruposPadrao() {
 		// Falha cedo (TenantNaoDefinidoException) em vez de depender só do RLS.

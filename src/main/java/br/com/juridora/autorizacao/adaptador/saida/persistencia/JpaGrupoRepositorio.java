@@ -1,5 +1,8 @@
 package br.com.juridora.autorizacao.adaptador.saida.persistencia;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import br.com.juridora.autorizacao.dominio.modelo.Grupo;
 import br.com.juridora.autorizacao.dominio.repositorio.GrupoRepositorio;
 import org.springframework.stereotype.Repository;
@@ -17,6 +20,11 @@ class JpaGrupoRepositorio implements GrupoRepositorio {
 	@Override
 	public Grupo adicionar(Grupo grupo) {
 		return spring.save(grupo);
+	}
+
+	@Override
+	public Optional<Grupo> buscar(UUID id) {
+		return spring.findById(id);
 	}
 
 }

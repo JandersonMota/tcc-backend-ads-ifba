@@ -28,9 +28,10 @@ Sistema de Gestão Jurídica SaaS multi-tenant para escritórios de advocacia (M
 - Pacotes e módulos (backend e frontend) em **português**, minúsculas e sem acentos (ex.: `processo`, `notificacao`, `adaptador.entrada.web`).
 
 ## Estado atual
-- Spring Security / OAuth2 Resource Server estão **comentados no `pom.xml`** até o emissor do JWT ser definido; não escolha o emissor por conta própria.
-- Infraestrutura de tenant pronta (HU03, ADR-012): `TenantContext` (`ScopedValue`, preenchido por adaptador de entrada), `@TenantId` via `EntidadeTenant` e `set_config('app.tenant_id')` no início de cada transação (`TenantJpaTransactionManager`). O filtro que lê o tenant do JWT entra com a HU06.
-- HU05 (cadastro de escritório, ADR-013): `POST /api/autenticacao/cadastro` em `identidade`, que coordena `EscritorioApi` e `AutorizacaoApi` em uma transação; migrações `V3` (usuario) e `V4` (grupo); próxima migração é a `V5`. `autorizacao` nunca depende de `identidade`.
+- Segurança ligada (HU06, ADR-014): JWT RS256 emitido pela própria aplicação (`JwtEncoder`) no `POST /api/autenticacao/login` e validado pelo OAuth2 Resource Server; nega por padrão (`SegurancaConfiguracao` em `compartilhado.infraestrutura.seguranca`). Chaves em `JWT_CHAVE_PRIVADA`/`JWT_CHAVE_PUBLICA`; sem elas, par temporário (local e testes).
+- Infraestrutura de tenant (HU03, ADR-012): `TenantContext` (`ScopedValue`, preenchido por adaptador de entrada), `@TenantId` via `EntidadeTenant` e `set_config('app.tenant_id')` no início de cada transação (`TenantJpaTransactionManager`). Nas requisições, o `TenantDoTokenFiltro` lê `tenant_id` e `sub` do JWT validado.
+- HU05 (cadastro de escritório, ADR-013): `POST /api/autenticacao/cadastro` em `identidade`, que coordena `EscritorioApi` e `AutorizacaoApi` em uma transação; migrações `V3` (usuario) e `V4` (grupo). `autorizacao` nunca depende de `identidade`.
+- HU06 (login, ADR-015): credencial buscada sem tenant só pela função `credencial_por_email` (`V5`, `SECURITY DEFINER`); permissões do grupo na claim `permissoes`; bloqueio em memória após 5 falhas (`ControleTentativasLogin`); `GET /api/perfil`. Próxima migração é a `V6`.
 - Nomes em português, inclusive endpoints (`/api/processos`) e sufixos de camada (`CasoDeUso`, `Repositorio`); só `Controller`, `Request`, `Response`, `Event`, `Exception` e `Api` ficam em inglês (`doc-mvp/07-codigo-e-desenvolvimento/padroes-de-codigo.md`).
 - Detalhes de implementação (multi-tenancy, eventos, testes, estrutura de módulos): skill `.claude/skills/arquitetura-gestao-juridica`.
 
