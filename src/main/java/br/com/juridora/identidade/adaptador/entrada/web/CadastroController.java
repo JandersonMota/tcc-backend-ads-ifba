@@ -4,6 +4,8 @@ import java.net.URI;
 
 import br.com.juridora.identidade.aplicacao.CadastroEscritorioServico;
 import br.com.juridora.identidade.aplicacao.ResultadoCadastro;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Cadastro público de escritório (HU05). Quando o Spring Security entrar (HU06), esta
- * rota deve ficar liberada ({@code permitAll}).
+ * Cadastro público de escritório (HU05). Rota liberada ({@code permitAll}) na
+ * configuração de segurança (HU06).
  */
 @RestController
 @RequestMapping("/api/autenticacao")
+@Tag(name = "Autenticação", description = "Cadastro de escritório e login (rotas públicas)")
 class CadastroController {
 
 	static final URI LOCAL_ESCRITORIO = URI.create("/api/escritorio");
@@ -28,6 +31,7 @@ class CadastroController {
 	}
 
 	@PostMapping("/cadastro")
+	@SecurityRequirements
 	ResponseEntity<CadastroResponse> cadastrar(@Valid @RequestBody CadastrarEscritorioRequest request) {
 		ResultadoCadastro resultado = cadastro.cadastrar(request.paraComando());
 		return ResponseEntity.created(LOCAL_ESCRITORIO)

@@ -1,5 +1,6 @@
 package br.com.juridora.autorizacao;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -16,5 +17,11 @@ public interface AutorizacaoApi {
 	 * O tenant vem do {@code TenantContext}, nunca de parâmetro. Participa da transação de quem chama.
 	 */
 	UUID criarGruposPadrao();
+
+	/**
+	 * Permissões ({@code RECURSO_ACAO}) do grupo, no escritório da execução atual.
+	 * Grupo inexistente ou de outro escritório devolve conjunto vazio (o RLS não o encontra).
+	 */
+	Set<String> permissoesDoGrupo(UUID grupoId);
 
 }

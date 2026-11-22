@@ -29,3 +29,19 @@ management:
     web:
       exposure:
         include: health,info,modulith
+
+juridora:
+  seguranca:
+    # JWT emitido pela própria aplicação (ADR-014), assinado com RS256.
+    jwt:
+      emissor: juridora
+      validade: 15m
+      # Chaves em PEM (privada PKCS#8, pública X.509). Vazias: par temporário gerado na
+      # inicialização (perfil local e testes); em produção, defina as duas variáveis.
+      chave-privada: ${JWT_CHAVE_PRIVADA:}
+      chave-publica: ${JWT_CHAVE_PUBLICA:}
+    # Bloqueio temporário do login (HU06, RNF04).
+    login:
+      maximo-falhas: 5
+      janela: 15m
+      bloqueio: 15m

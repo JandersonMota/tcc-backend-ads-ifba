@@ -22,7 +22,7 @@ Você implementa e revisa código de um **SaaS multi-tenant para escritórios de
 | Containers | Docker |
 | Frontend | a definir |
 
-Itens marcados como "a definir" no README (framework do frontend, emissor do JWT) **não devem ser escolhidos por conta própria**: pergunte ao usuário ou registre a premissa.
+Itens marcados como "a definir" no README (ex.: framework do frontend) **não devem ser escolhidos por conta própria**: pergunte ao usuário ou registre a premissa. O emissor do JWT já foi decidido: próprio, com `JwtEncoder` (ADR-014).
 
 ## Regras invioláveis
 
