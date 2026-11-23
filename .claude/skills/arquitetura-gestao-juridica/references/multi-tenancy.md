@@ -28,11 +28,11 @@ A infraestrutura já está implementada (HU03, ADR-012) em `compartilhado`. **Re
 - O `tenant_id` é uma **claim do JWT** emitido no login. Nunca vem de parâmetro, path, header ou corpo.
 - `TenantContext` guarda o tenant (e o usuário) da execução em um `ScopedValue`: vale só dentro de `executarComo`, não vaza entre requisições nem entre threads.
 - Quem chama `executarComo` é sempre um **adaptador de entrada confiável**:
-  - HTTP: `TenantDoTokenFiltro` (`compartilhado.infraestrutura.seguranca`), a partir das claims `tenant_id` e `sub` do JWT validado (HU06);
+  - HTTP: `TenantDoTokenFiltro` (`compartilhado.infraestrutura.seguranca`), a partir das claims `tenant_id` e `sub` do JWT validado (HU06); já no tenant, recusa token cujo `jti` foi revogado no logout (HU07);
   - listener de evento: a partir de `evento.tenantId()` (ver `comunicacao-eventos.md`);
   - testes: diretamente.
 - Casos de uso e domínio **leem** (`tenantAtual()`, `usuarioAtual()`), nunca definem.
-- Operações sem tenant (criar escritório, login) são exceções explícitas e ficam restritas aos módulos `escritorio` e `identidade`. No login, a única leitura sem tenant é a função `credencial_por_email` (`V5`, ADR-015): nunca crie outra política ou função que ignore o RLS sem uma ADR.
+- Operações sem tenant (criar escritório, login) são exceções explícitas e ficam restritas aos módulos `escritorio` e `identidade`. No login, a única leitura sem tenant é a função `credencial_por_email` (`V5`, ADR-015); na limpeza do logout, a função `remover_tokens_revogados_vencidos` (`V6`, ADR-016), que só apaga revogações vencidas. Nunca crie outra política ou função que ignore o RLS sem uma ADR.
 
 ```java
 // leitura (caso de uso, adaptador)
@@ -86,7 +86,7 @@ JDBC (`JdbcTemplate`) dentro da transação usa a mesma conexão e também fica 
 Modelo de migração Flyway para tabela de negócio:
 
 ```sql
--- V6__criar_cliente.sql
+-- V7__criar_cliente.sql
 CREATE TABLE cliente (
     id         UUID         NOT NULL PRIMARY KEY,
     tenant_id  UUID         NOT NULL REFERENCES escritorio (id),
@@ -117,7 +117,7 @@ Cuidados:
 
 ## Migrações Flyway
 
-- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith), `V2__criar_escritorio.sql`, `V3__criar_usuario.sql` e `V4__criar_grupo.sql` (HU05) e `V5__criar_funcao_credencial_login.sql` (HU06); a próxima é `V6`.
+- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith), `V2__criar_escritorio.sql`, `V3__criar_usuario.sql` e `V4__criar_grupo.sql` (HU05) , `V5__criar_funcao_credencial_login.sql` (HU06) e `V6__criar_token_revogado.sql` (HU07); a próxima é `V7`.
 - Uma migração aplicada nunca é editada; correções vão em nova versão.
 - Toda tabela de negócio nasce com `tenant_id`, índice e RLS na **mesma** migração.
 - Tabelas pertencem a um único módulo; não crie FKs entre tabelas de módulos diferentes (exceto para `escritorio`, que é referência comum).

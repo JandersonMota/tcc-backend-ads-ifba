@@ -34,7 +34,7 @@ class RlsTodaTabelaNegocioIT {
 	@Test
 	void tabelasDeNegocioConhecidasTemTenantId() {
 		assertThat(jdbc.queryForList(TABELAS_COM_TENANT, String.class))
-				.contains("usuario", "grupo", "grupo_permissao", "registro_isolamento");
+				.contains("usuario", "grupo", "grupo_permissao", "token_revogado", "registro_isolamento");
 	}
 
 	@Test

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Login com e-mail e senha (HU06). Rota pública ({@code permitAll} na configuração de segurança). */
 @RestController
 @RequestMapping("/api/autenticacao")
-@Tag(name = "Autenticação", description = "Cadastro de escritório e login (rotas públicas)")
+@Tag(name = "Autenticação", description = "Cadastro de escritório e login (públicos) e logout")
 class LoginController {
 
 	private final LoginServico login;
