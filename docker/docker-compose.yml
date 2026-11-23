@@ -1,9 +1,11 @@
-# PostgreSQL local do Juridora (desenvolvimento).
-#   Subir:   docker compose -f docker/docker-compose.yml up -d
-#   Parar:   docker compose -f docker/docker-compose.yml down
-#   Zerar:   docker compose -f docker/docker-compose.yml down -v   (apaga os dados)
+# Ambiente local do Juridora (desenvolvimento).
+#   Só o banco:     docker compose -f docker/docker-compose.yml up -d
+#                   (a API roda fora do Docker: ./mvnw spring-boot:run -Dspring-boot.run.profiles=local)
+#   Banco + API:    docker compose -f docker/docker-compose.yml --profile api up -d --build
+#   Parar:          docker compose -f docker/docker-compose.yml --profile api down
+#   Zerar:          docker compose -f docker/docker-compose.yml --profile api down -v   (apaga os dados)
 #
-# Senhas, porta e perfil do Spring: docker/.env (não versionado, está no .gitignore).
+# Senhas, portas e chaves JWT: docker/.env (não versionado, está no .gitignore).
 # Os scripts de docker/postgres só rodam na PRIMEIRA criação do volume.
 
 name: juridora
@@ -31,6 +33,36 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  juridora-api:
+    profiles: ["api"]               # só sobe com --profile api (evita conflito com o ./mvnw na 8080)
+    build:
+      context: ..                   # raiz do repositório, onde está o Dockerfile
+    image: juridora-api:local
+    container_name: juridora-api
+    restart: unless-stopped
+    depends_on:
+      juridora-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      # O perfil local aponta para localhost; dentro da rede do compose o banco é o serviço juridora-postgres.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://juridora-postgres:5432/${POSTGRES_DB:-juridora}
+      APP_OWNER_SENHA: ${APP_OWNER_SENHA:-app_owner}          # Flyway como app_owner
+      APP_USER_SENHA: ${APP_USER_SENHA:-app_user}             # aplicação como app_user (RLS aplicado)
+      # Vazias: par de chaves temporário a cada inicialização (tokens não sobrevivem a reinícios).
+      JWT_CHAVE_PRIVADA: ${JWT_CHAVE_PRIVADA:-}
+      JWT_CHAVE_PUBLICA: ${JWT_CHAVE_PUBLICA:-}
+      TZ: America/Bahia
+    ports:
+      - "${API_PORTA:-8080}:8080"
+    healthcheck:
+      # A imagem JRE não tem curl/wget: consulta o /actuator/health pelo /dev/tcp do bash.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
 
 volumes:
   juridora-postgres-dados:
