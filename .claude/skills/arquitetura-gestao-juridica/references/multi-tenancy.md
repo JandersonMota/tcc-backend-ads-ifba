@@ -86,7 +86,7 @@ JDBC (`JdbcTemplate`) dentro da transação usa a mesma conexão e também fica 
 Modelo de migração Flyway para tabela de negócio:
 
 ```sql
--- V7__criar_cliente.sql
+-- V8__criar_cliente.sql
 CREATE TABLE cliente (
     id         UUID         NOT NULL PRIMARY KEY,
     tenant_id  UUID         NOT NULL REFERENCES escritorio (id),
@@ -117,7 +117,7 @@ Cuidados:
 
 ## Migrações Flyway
 
-- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith), `V2__criar_escritorio.sql`, `V3__criar_usuario.sql` e `V4__criar_grupo.sql` (HU05) , `V5__criar_funcao_credencial_login.sql` (HU06) e `V6__criar_token_revogado.sql` (HU07); a próxima é `V7`.
+- Padrão de nome: `V{n}__criar_{tabela}.sql`. Já existem `V1__criar_event_publication.sql` (Spring Modulith), `V2__criar_escritorio.sql`, `V3__criar_usuario.sql` e `V4__criar_grupo.sql` (HU05) , `V5__criar_funcao_credencial_login.sql` (HU06) , `V6__criar_token_revogado.sql` (HU07) e `V7__adicionar_sessoes_validas_desde_usuario.sql` (HU08); a próxima é `V8`. Alteração de tabela existente usa `V{n}__adicionar_{coluna}_{tabela}.sql`.
 - Uma migração aplicada nunca é editada; correções vão em nova versão.
 - Toda tabela de negócio nasce com `tenant_id`, índice e RLS na **mesma** migração.
 - Tabelas pertencem a um único módulo; não crie FKs entre tabelas de módulos diferentes (exceto para `escritorio`, que é referência comum).
@@ -136,3 +136,9 @@ Convenção (catálogo e grupos padrão em `doc-mvp/10-seguranca-e-conformidade/
 Respostas:
 - Sem permissão → **403**.
 - Recurso de outro escritório → **404** (com o filtro de tenant, o recurso simplesmente não é encontrado; não revele que existe).
+
+Exceções de `compartilhado.excecao`, traduzidas pelo `TratadorErros` (`type` `/problemas/<tipo>`): `ValidacaoException` 400, `AutenticacaoException` 401, `AcessoNegadoException` 403 (regra que depende do recurso, ex.: só o proprietário altera o próprio cadastro), `RecursoNaoEncontradoException` 404 (crie uma subclasse por recurso, ex.: `UsuarioNaoEncontradoException`), `ConflitoException` 409, `RegraNegocioException` 422 (ex.: limite do plano) e `LimiteExcedidoException` 429.
+
+Limites do plano (RN09): leia com `EscritorioApi.limitesDoPlano()` e conte os ativos sob uma trava consultiva por tenant (`pg_advisory_xact_lock`), como em `JpaUsuarioRepositorio.contarAtivosComTrava()`, para que duas criações simultâneas não passem juntas do limite.
+
+Sessão do token: além de validar o JWT, o `TenantDoTokenFiltro` consulta a porta `SessoesAtivas`, que recusa token revogado no logout, de usuário desativado ou com `iat` anterior a `usuario.sessoes_validas_desde`.

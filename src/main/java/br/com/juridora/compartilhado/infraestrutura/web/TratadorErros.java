@@ -3,10 +3,13 @@ package br.com.juridora.compartilhado.infraestrutura.web;
 import java.net.URI;
 import java.util.List;
 
+import br.com.juridora.compartilhado.excecao.AcessoNegadoException;
 import br.com.juridora.compartilhado.excecao.AutenticacaoException;
 import br.com.juridora.compartilhado.excecao.ConflitoException;
 import br.com.juridora.compartilhado.excecao.LimiteExcedidoException;
 import br.com.juridora.compartilhado.excecao.NegocioException;
+import br.com.juridora.compartilhado.excecao.RecursoNaoEncontradoException;
+import br.com.juridora.compartilhado.excecao.RegraNegocioException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,7 +26,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  * <ul>
  *   <li>erro de validação do corpo → 400, com a lista {@code campos};</li>
  *   <li>{@link AutenticacaoException} → 401;</li>
+ *   <li>{@link AcessoNegadoException} → 403;</li>
+ *   <li>{@link RecursoNaoEncontradoException} → 404;</li>
  *   <li>{@link ConflitoException} → 409;</li>
+ *   <li>{@link RegraNegocioException} → 422;</li>
  *   <li>{@link LimiteExcedidoException} → 429, com {@code Retry-After} em segundos;</li>
  *   <li>demais {@link NegocioException} → 400.</li>
  * </ul>
@@ -42,7 +48,10 @@ class TratadorErros extends ResponseEntityExceptionHandler {
 	ResponseEntity<ProblemDetail> tratarNegocio(NegocioException excecao) {
 		HttpStatus status = switch (excecao) {
 			case AutenticacaoException _ -> HttpStatus.UNAUTHORIZED;
+			case AcessoNegadoException _ -> HttpStatus.FORBIDDEN;
+			case RecursoNaoEncontradoException _ -> HttpStatus.NOT_FOUND;
 			case ConflitoException _ -> HttpStatus.CONFLICT;
+			case RegraNegocioException _ -> HttpStatus.UNPROCESSABLE_CONTENT;
 			case LimiteExcedidoException _ -> HttpStatus.TOO_MANY_REQUESTS;
 			default -> HttpStatus.BAD_REQUEST;
 		};
@@ -61,7 +70,10 @@ class TratadorErros extends ResponseEntityExceptionHandler {
 	private static String titulo(HttpStatus status) {
 		return switch (status) {
 			case UNAUTHORIZED -> "Não autenticado";
+			case FORBIDDEN -> "Sem permissão";
+			case NOT_FOUND -> "Não encontrado";
 			case CONFLICT -> "Conflito com dado existente";
+			case UNPROCESSABLE_CONTENT -> "Regra de negócio violada";
 			case TOO_MANY_REQUESTS -> "Muitas tentativas";
 			default -> "Dados inválidos";
 		};

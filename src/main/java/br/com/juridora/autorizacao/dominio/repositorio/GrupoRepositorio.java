@@ -1,5 +1,6 @@
 package br.com.juridora.autorizacao.dominio.repositorio;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,5 +14,11 @@ public interface GrupoRepositorio {
 
 	/** Grupo do escritório da execução; vazio se não existir ou for de outro escritório. */
 	Optional<Grupo> buscar(UUID id);
+
+	/** {@code true} se o grupo existe no escritório da execução. */
+	boolean existe(UUID id);
+
+	/** Grupos do escritório da execução, em ordem de nome. */
+	List<Grupo> listar();
 
 }

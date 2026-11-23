@@ -24,4 +24,10 @@ public interface AutorizacaoApi {
 	 */
 	Set<String> permissoesDoGrupo(UUID grupoId);
 
+	/**
+	 * {@code true} se o grupo existe no escritório da execução atual (HU08). Grupo de
+	 * outro escritório devolve {@code false}.
+	 */
+	boolean grupoExiste(UUID grupoId);
+
 }

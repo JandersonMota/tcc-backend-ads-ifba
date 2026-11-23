@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
-import br.com.juridora.compartilhado.infraestrutura.seguranca.TokensRevogados;
 import br.com.juridora.identidade.dominio.TokenRevogadoRepositorio;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -19,17 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
  * {@code app.tenant_id} ser definido. A limpeza roda sem tenant, pela função
  * {@code remover_tokens_revogados_vencidos} ({@code SECURITY DEFINER}).
  * <p>
- * Também implementa a porta {@link TokensRevogados}, consultada pelo filtro de segurança.
+ * A consulta feita a cada requisição fica em {@link JdbcSessoesAtivas}.
  */
 @Repository
-class JdbcTokenRevogadoRepositorio implements TokenRevogadoRepositorio, TokensRevogados {
+class JdbcTokenRevogadoRepositorio implements TokenRevogadoRepositorio {
 
 	private static final String REVOGAR = """
 			insert into token_revogado (jti, usuario_id, expira_em)
 			values (:jti, :usuarioId, :expiraEm)
 			on conflict (jti) do nothing""";
-
-	private static final String CONTEM = "select exists (select 1 from token_revogado where jti = :jti)";
 
 	private static final String REMOVER_VENCIDOS = "select remover_tokens_revogados_vencidos()";
 
@@ -47,12 +44,6 @@ class JdbcTokenRevogadoRepositorio implements TokenRevogadoRepositorio, TokensRe
 				.param("usuarioId", usuarioId)
 				.param("expiraEm", Timestamp.from(expiraEm))
 				.update();
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public boolean contem(UUID jti) {
-		return jdbc.sql(CONTEM).param("jti", jti).query(Boolean.class).single();
 	}
 
 	@Override
