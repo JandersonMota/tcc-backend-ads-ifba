@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/autenticacao")
-@Tag(name = "Autenticação", description = "Cadastro de escritório e login (rotas públicas)")
+@Tag(name = "Autenticação", description = "Cadastro de escritório e login (públicos) e logout")
 class CadastroController {
 
 	static final URI LOCAL_ESCRITORIO = URI.create("/api/escritorio");

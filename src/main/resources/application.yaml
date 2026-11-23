@@ -45,3 +45,6 @@ juridora:
       maximo-falhas: 5
       janela: 15m
       bloqueio: 15m
+    # Limpeza das revogações de tokens já expirados (HU07).
+    logout:
+      intervalo-limpeza: 1h

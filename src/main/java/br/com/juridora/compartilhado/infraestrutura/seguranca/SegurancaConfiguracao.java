@@ -31,7 +31,8 @@ class SegurancaConfiguracao {
 			"/actuator/health", "/actuator/health/**", "/error" };
 
 	@Bean
-	SecurityFilterChain cadeiaDeSeguranca(HttpSecurity http, TenantContext tenantContext) throws Exception {
+	SecurityFilterChain cadeiaDeSeguranca(HttpSecurity http, TenantContext tenantContext,
+			TokensRevogados tokensRevogados) throws Exception {
 		RespostaErroSeguranca respostaErro = new RespostaErroSeguranca();
 		http
 				.csrf(AbstractHttpConfigurer::disable)
@@ -50,7 +51,7 @@ class SegurancaConfiguracao {
 				.exceptionHandling(erros -> erros
 						.authenticationEntryPoint(respostaErro)
 						.accessDeniedHandler(respostaErro))
-				.addFilterAfter(new TenantDoTokenFiltro(tenantContext, respostaErro),
+				.addFilterAfter(new TenantDoTokenFiltro(tenantContext, tokensRevogados, respostaErro),
 						BearerTokenAuthenticationFilter.class);
 		return http.build();
 	}

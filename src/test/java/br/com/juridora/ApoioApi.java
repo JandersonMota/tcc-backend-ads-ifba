@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 /**
  * Chamadas de API repetidas nos testes de integração: cadastro de escritório (HU05),
- * login (HU06) e leitura do corpo da resposta.
+ * login (HU06), logout (HU07) e leitura do corpo da resposta.
  */
 public final class ApoioApi {
 
@@ -55,6 +55,10 @@ public final class ApoioApi {
 
 	public MvcTestResult perfil(String token) {
 		return mvc.get().uri("/api/perfil").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
+	}
+
+	public MvcTestResult sair(String token) {
+		return mvc.post().uri("/api/autenticacao/sair").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
 	}
 
 	public MvcTestResult postar(String uri, String json) {

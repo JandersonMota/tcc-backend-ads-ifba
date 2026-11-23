@@ -104,7 +104,6 @@ tcc-backend-ads-ifba
         ├── java/br/com/juridora
         │   ├── TestcontainersConfiguration.java     ← PostgreSQL em contêiner; Flyway como app_owner, aplicação como app_user (sem BYPASSRLS)
         │   ├── TestJuridoraApiApplication.java      ← executa a aplicação com o Testcontainers
-        │   ├── JuridoraApiApplicationTests.java
         │   ├── arquitetura            ← ModularidadeTest (fronteiras entre módulos) e CamadasTest (ArchUnit: camadas dentro do módulo)
         │   ├── isolamento             ← IsolamentoMultiTenantIT: @TenantId e RLS (HU03)
         │   └── <um pacote por módulo>
