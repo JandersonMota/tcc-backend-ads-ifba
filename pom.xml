@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.2</version>
+		<version>4.2.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.com.juridora</groupId>
@@ -15,7 +15,7 @@
 	<description>Backend do Juridora: sistema de gestão jurídica SaaS multi-tenant (MVP do TCC – ADS/IFBA)</description>
 	<properties>
 		<java.version>25</java.version>
-		<spring-modulith.version>2.1.1</spring-modulith.version>
+		<spring-modulith.version>2.2.0</spring-modulith.version>
 		<springdoc.version>3.2.0</springdoc.version>
 	</properties>
 	<dependencies>
