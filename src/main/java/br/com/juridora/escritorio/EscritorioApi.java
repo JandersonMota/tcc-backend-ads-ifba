@@ -16,4 +16,10 @@ public interface EscritorioApi {
 	 */
 	void cadastrar(UUID id, String nome);
 
+	/**
+	 * Limites do plano do escritório da execução atual (RN09). O tenant vem do
+	 * {@code TenantContext}. Participa da transação de quem chama.
+	 */
+	LimitesDoPlano limitesDoPlano();
+
 }

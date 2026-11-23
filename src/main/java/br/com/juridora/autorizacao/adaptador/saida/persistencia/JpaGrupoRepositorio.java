@@ -1,5 +1,6 @@
 package br.com.juridora.autorizacao.adaptador.saida.persistencia;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,6 +26,16 @@ class JpaGrupoRepositorio implements GrupoRepositorio {
 	@Override
 	public Optional<Grupo> buscar(UUID id) {
 		return spring.findById(id);
+	}
+
+	@Override
+	public boolean existe(UUID id) {
+		return spring.existsById(id);
+	}
+
+	@Override
+	public List<Grupo> listar() {
+		return spring.findAllByOrderByNomeAsc();
 	}
 
 }

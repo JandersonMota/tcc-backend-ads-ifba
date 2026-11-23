@@ -12,6 +12,13 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  data:
+    web:
+      pageable:
+        # Página em JSON estável ({content, page}) e tamanho máximo por requisição.
+        serialization-mode: via-dto
+        max-page-size: 100
+
   modulith:
     events:
       # Registro de publicação de eventos (spring-modulith-starter-jpa).
@@ -48,3 +55,9 @@ juridora:
     # Limpeza das revogações de tokens já expirados (HU07).
     logout:
       intervalo-limpeza: 1h
+  # Limites por plano (RN09). Ao atingir um limite, só a criação é bloqueada.
+  planos:
+    free:
+      usuarios-ativos: 2
+      clientes-ativos: 50
+      processos-ativos: 50
