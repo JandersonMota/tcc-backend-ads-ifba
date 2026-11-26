@@ -87,6 +87,25 @@ public final class ApoioApi {
 				.contentType(MediaType.APPLICATION_JSON).content(json).exchange();
 	}
 
+	public MvcTestResult excluir(String token, String uri) {
+		return mvc.delete().uri(uri).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
+	}
+
+	// ------------------------------------------------------------------ grupos (HU09)
+
+	public MvcTestResult criarGrupo(String token, String nome, String... permissoes) {
+		String lista = permissoes.length == 0 ? "" : "\"" + String.join("\", \"", permissoes) + "\"";
+		return postar(token, "/api/grupos", """
+				{"nome": "%s", "permissoes": [%s]}""".formatted(nome, lista));
+	}
+
+	/** Grupo personalizado criado pelo proprietário que precisa dar certo; devolve o ID. */
+	public UUID grupoPersonalizado(String tokenProprietario, String nome, String... permissoes) {
+		MvcTestResult resposta = criarGrupo(tokenProprietario, nome, permissoes);
+		assertThat(resposta).hasStatus(HttpStatus.CREATED);
+		return UUID.fromString(campo(resposta, "$.id"));
+	}
+
 	/** ID de um grupo padrão do escritório do token, pelo nome (ex.: "Advogado"). */
 	public UUID grupo(String token, String nome) {
 		MvcTestResult resposta = obter(token, "/api/grupos");

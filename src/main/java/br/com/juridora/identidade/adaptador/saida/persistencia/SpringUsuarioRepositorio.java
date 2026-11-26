@@ -10,4 +10,6 @@ interface SpringUsuarioRepositorio extends JpaRepository<Usuario, UUID> {
 
 	long countByAtivoTrue();
 
+	boolean existsByGrupoId(UUID grupoId);
+
 }
