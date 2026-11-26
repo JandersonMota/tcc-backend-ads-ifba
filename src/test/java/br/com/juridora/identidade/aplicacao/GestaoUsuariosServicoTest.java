@@ -22,17 +22,20 @@ import br.com.juridora.compartilhado.infraestrutura.tenant.TenantContext;
 import br.com.juridora.escritorio.EscritorioApi;
 import br.com.juridora.escritorio.LimitesDoPlano;
 import br.com.juridora.identidade.dominio.CodificadorSenha;
+import br.com.juridora.identidade.UsuarioGrupoAlteradoEvent;
 import br.com.juridora.identidade.dominio.Email;
+import br.com.juridora.identidade.dominio.GrupoReservadoAoProprietarioException;
 import br.com.juridora.identidade.dominio.Usuario;
 import br.com.juridora.identidade.dominio.UsuarioNaoEncontradoException;
 import br.com.juridora.identidade.dominio.UsuarioRepositorio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionOperations;
 
-/** HU08: regras da gestão de usuários, sem banco (a integração fica no {@code GestaoUsuariosIT}). */
+/** HU08 e HU10: regras da gestão de usuários, sem banco (a integração fica no {@code GestaoUsuariosIT} e no {@code TrocaDeGrupoIT}). */
 class GestaoUsuariosServicoTest {
 
 	private static final UUID ESCRITORIO = UUID.randomUUID();
@@ -43,6 +46,7 @@ class GestaoUsuariosServicoTest {
 	private final AutorizacaoApi autorizacao = mock(AutorizacaoApi.class);
 	private final EscritorioApi escritorio = mock(EscritorioApi.class);
 	private final CodificadorSenha codificador = mock(CodificadorSenha.class);
+	private final ApplicationEventPublisher eventos = mock(ApplicationEventPublisher.class);
 	private final TenantContext tenantContext = new TenantContext();
 
 	private GestaoUsuariosServico gestao;
@@ -53,7 +57,7 @@ class GestaoUsuariosServicoTest {
 	@BeforeEach
 	void preparar() {
 		gestao = new GestaoUsuariosServico(usuarios, autorizacao, escritorio, codificador, tenantContext,
-				TransactionOperations.withoutTransaction(),
+				TransactionOperations.withoutTransaction(), eventos,
 				Clock.fixed(Instant.parse("2026-11-22T10:00:00Z"), ZoneOffset.UTC));
 		proprietario = comId(Usuario.proprietario("Ana", new Email("ana@exemplo.com"), "hash", GRUPO));
 		membro = comId(Usuario.membro("Bruno", new Email("bruno@exemplo.com"), "hash", GRUPO));
@@ -158,6 +162,77 @@ class GestaoUsuariosServicoTest {
 			return null;
 		})).isInstanceOf(LimiteDeUsuariosAtingidoException.class);
 		assertThat(membro.isAtivo()).isFalse();
+	}
+
+	// ------------------------------------------------------------------ HU10
+
+	@Test
+	void naoCadastraMembroNoGrupoProprietario() {
+		UUID grupoProprietario = UUID.randomUUID();
+		when(autorizacao.grupoExiste(grupoProprietario)).thenReturn(true);
+		when(autorizacao.ehGrupoProprietario(grupoProprietario)).thenReturn(true);
+
+		assertThatThrownBy(() -> comoProprietario(() -> gestao.cadastrar(comando("carla@exemplo.com", grupoProprietario))))
+				.isInstanceOf(GrupoReservadoAoProprietarioException.class);
+		verify(usuarios, never()).adicionar(any());
+	}
+
+	@Test
+	void trocaOGrupoEPublicaOEvento() {
+		UUID novo = UUID.randomUUID();
+		when(autorizacao.grupoExiste(novo)).thenReturn(true);
+
+		DadosUsuario trocado = comoProprietario(() -> gestao.trocarGrupo(membro.getId(), novo));
+
+		assertThat(trocado.grupoId()).isEqualTo(novo);
+		verify(usuarios).atualizar(membro);
+		ArgumentCaptor<UsuarioGrupoAlteradoEvent> evento = ArgumentCaptor.forClass(UsuarioGrupoAlteradoEvent.class);
+		verify(eventos).publishEvent(evento.capture());
+		assertThat(evento.getValue()).isEqualTo(new UsuarioGrupoAlteradoEvent(ESCRITORIO, membro.getId(), GRUPO, novo,
+				proprietario.getId(), Instant.parse("2026-11-22T10:00:00Z")));
+	}
+
+	@Test
+	void trocarParaOGrupoAtualNaoGravaNemPublica() {
+		comoProprietario(() -> gestao.trocarGrupo(membro.getId(), GRUPO));
+
+		verify(usuarios, never()).atualizar(any());
+		verifyNoInteractions(eventos);
+	}
+
+	@Test
+	void grupoQueNaoEhDoEscritorioNaoServeNaTroca() {
+		UUID deOutroEscritorio = UUID.randomUUID();
+
+		assertThatThrownBy(() -> comoProprietario(() -> gestao.trocarGrupo(membro.getId(), deOutroEscritorio)))
+				.isInstanceOf(ValidacaoException.class);
+		assertThat(membro.getGrupoId()).isEqualTo(GRUPO);
+		verifyNoInteractions(eventos);
+	}
+
+	@Test
+	void membroNaoEntraNoGrupoProprietario() {
+		UUID grupoProprietario = UUID.randomUUID();
+		when(autorizacao.grupoExiste(grupoProprietario)).thenReturn(true);
+		when(autorizacao.ehGrupoProprietario(grupoProprietario)).thenReturn(true);
+
+		assertThatThrownBy(() -> comoProprietario(() -> gestao.trocarGrupo(membro.getId(), grupoProprietario)))
+				.isInstanceOf(GrupoReservadoAoProprietarioException.class);
+		assertThat(membro.getGrupoId()).isEqualTo(GRUPO);
+	}
+
+	@Test
+	void proprietarioNaoSaiDoGrupoProprietario() {
+		assertThatThrownBy(() -> comoProprietario(() -> gestao.trocarGrupo(proprietario.getId(), UUID.randomUUID())))
+				.isInstanceOf(GrupoReservadoAoProprietarioException.class);
+		verifyNoInteractions(eventos);
+	}
+
+	@Test
+	void ninguemTrocaOProprioGrupo() {
+		assertThatThrownBy(() -> como(membro, () -> gestao.trocarGrupo(membro.getId(), UUID.randomUUID())))
+				.isInstanceOf(AutoTrocaDeGrupoException.class);
+		assertThat(membro.getGrupoId()).isEqualTo(GRUPO);
 	}
 
 	private static CadastrarUsuarioComando comando(String email, UUID grupo) {
