@@ -26,8 +26,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Usuários do escritório (HU08). Ler exige {@code USUARIO_VISUALIZAR}; cadastrar, editar,
- * desativar e reativar exigem {@code USUARIO_GERENCIAR} (Matriz de Permissões). O
+ * Usuários do escritório (HU08, HU10). Ler exige {@code USUARIO_VISUALIZAR}; cadastrar, editar,
+ * trocar o grupo, desativar e reativar exigem {@code USUARIO_GERENCIAR} (Matriz de Permissões). O
  * escritório vem do token; usuário de outro escritório responde 404.
  */
 @RestController
@@ -67,6 +67,12 @@ class UsuarioController {
 	@PreAuthorize("hasAuthority('USUARIO_GERENCIAR')")
 	UsuarioResponse alterar(@PathVariable UUID id, @Valid @RequestBody AlterarUsuarioRequest request) {
 		return UsuarioResponse.de(gestao.alterar(id, request.paraComando()));
+	}
+
+	@PutMapping("/{id}/grupo")
+	@PreAuthorize("hasAuthority('USUARIO_GERENCIAR')")
+	UsuarioResponse trocarGrupo(@PathVariable UUID id, @Valid @RequestBody TrocarGrupoRequest request) {
+		return UsuarioResponse.de(gestao.trocarGrupo(id, request.grupoId()));
 	}
 
 	@PostMapping("/{id}/desativar")

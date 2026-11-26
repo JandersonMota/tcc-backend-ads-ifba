@@ -16,7 +16,8 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 /**
  * Chamadas de API repetidas nos testes de integração: cadastro de escritório (HU05),
- * login (HU06), logout (HU07), gestão de usuários (HU08) e leitura do corpo da resposta.
+ * login (HU06), logout (HU07), gestão de usuários (HU08), grupos (HU09), troca de grupo
+ * (HU10) e leitura do corpo da resposta.
  */
 public final class ApoioApi {
 
@@ -125,6 +126,13 @@ public final class ApoioApi {
 		MvcTestResult resposta = cadastrarUsuario(tokenProprietario, email, grupo(tokenProprietario, nomeGrupo));
 		assertThat(resposta).hasStatus(HttpStatus.CREATED);
 		return UUID.fromString(campo(resposta, "$.id"));
+	}
+
+	// ------------------------------------------------------------ troca de grupo (HU10)
+
+	public MvcTestResult trocarGrupo(String token, UUID usuarioId, UUID grupoId) {
+		return alterar(token, "/api/usuarios/" + usuarioId + "/grupo", """
+				{"grupoId": "%s"}""".formatted(grupoId));
 	}
 
 	public static String campo(MvcTestResult resposta, String caminho) {

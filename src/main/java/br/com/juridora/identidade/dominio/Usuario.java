@@ -76,6 +76,26 @@ public class Usuario extends EntidadeTenant {
 	}
 
 	/**
+	 * Coloca o usuário em outro grupo (HU10). As permissões novas chegam no próximo login.
+	 * Se o grupo pertence ao escritório e não é o Proprietário, quem confere é o caso de uso,
+	 * pela API da autorizacao.
+	 *
+	 * @return {@code true} se o grupo mudou
+	 * @throws GrupoReservadoAoProprietarioException se for o proprietário (ele não sai do grupo Proprietário)
+	 */
+	public boolean trocarGrupo(UUID novoGrupoId) {
+		Objects.requireNonNull(novoGrupoId, "novoGrupoId é obrigatório");
+		if (proprietario) {
+			throw GrupoReservadoAoProprietarioException.proprietarioNaoSai();
+		}
+		if (novoGrupoId.equals(grupoId)) {
+			return false;
+		}
+		grupoId = novoGrupoId;
+		return true;
+	}
+
+	/**
 	 * Desativa o usuário (HU08, RN08): ele não autentica mais e os tokens já emitidos param
 	 * de valer. Os registros dele permanecem. Desativar quem já está desativado não muda nada.
 	 *

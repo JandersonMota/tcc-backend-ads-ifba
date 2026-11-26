@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.juridora.autorizacao.dominio.modelo.Grupo;
 import br.com.juridora.autorizacao.dominio.modelo.GrupoNaoEncontradoException;
 import br.com.juridora.autorizacao.dominio.modelo.Permissao;
 import br.com.juridora.autorizacao.dominio.repositorio.GrupoRepositorio;
@@ -61,6 +62,13 @@ public class ConsultarGruposCasoDeUso {
 		// Falha cedo (TenantNaoDefinidoException): sem tenant o RLS diria "não existe", escondendo o erro.
 		tenantContext.tenantAtual();
 		return grupoId != null && grupos.existe(grupoId);
+	}
+
+	/** O grupo Proprietário não muda de nome nem sai (HU09), então não precisa de trava. */
+	@Transactional(readOnly = true)
+	public boolean ehProprietario(UUID grupoId) {
+		tenantContext.tenantAtual();
+		return grupoId != null && grupos.buscar(grupoId).map(Grupo::ehProprietario).orElse(false);
 	}
 
 }

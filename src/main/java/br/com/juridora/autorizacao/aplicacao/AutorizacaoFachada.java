@@ -44,4 +44,9 @@ class AutorizacaoFachada implements AutorizacaoApi {
 		return consultarGrupos.existe(grupoId);
 	}
 
+	@Override
+	public boolean ehGrupoProprietario(UUID grupoId) {
+		return consultarGrupos.ehProprietario(grupoId);
+	}
+
 }

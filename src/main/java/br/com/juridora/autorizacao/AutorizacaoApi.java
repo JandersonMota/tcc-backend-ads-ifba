@@ -34,4 +34,11 @@ public interface AutorizacaoApi {
 	 */
 	boolean grupoExiste(UUID grupoId);
 
+	/**
+	 * {@code true} se o grupo é o Proprietário do escritório da execução atual (HU10). Esse
+	 * grupo é reservado ao dono: ninguém mais é colocado nele. Grupo inexistente ou de outro
+	 * escritório devolve {@code false}.
+	 */
+	boolean ehGrupoProprietario(UUID grupoId);
+
 }

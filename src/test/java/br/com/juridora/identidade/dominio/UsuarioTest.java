@@ -80,4 +80,32 @@ class UsuarioTest {
 				.isInstanceOf(ValidacaoException.class);
 	}
 
+	// ------------------------------------------------------------------ HU10
+
+	@Test
+	void membroTrocaDeGrupo() {
+		Usuario usuario = membro();
+		UUID outro = UUID.randomUUID();
+
+		assertThat(usuario.trocarGrupo(outro)).isTrue();
+		assertThat(usuario.getGrupoId()).isEqualTo(outro);
+	}
+
+	@Test
+	void trocarParaOMesmoGrupoNaoMudaNada() {
+		Usuario usuario = membro();
+
+		assertThat(usuario.trocarGrupo(GRUPO)).isFalse();
+		assertThat(usuario.getGrupoId()).isEqualTo(GRUPO);
+	}
+
+	@Test
+	void proprietarioNaoSaiDoGrupoProprietario() {
+		Usuario proprietario = Usuario.proprietario("Ana", new Email("ana@exemplo.com"), "hash", GRUPO);
+
+		assertThatThrownBy(() -> proprietario.trocarGrupo(UUID.randomUUID()))
+				.isInstanceOf(GrupoReservadoAoProprietarioException.class);
+		assertThat(proprietario.getGrupoId()).isEqualTo(GRUPO);
+	}
+
 }
