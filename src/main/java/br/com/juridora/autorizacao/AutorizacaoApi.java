@@ -27,6 +27,10 @@ public interface AutorizacaoApi {
 	/**
 	 * {@code true} se o grupo existe no escritório da execução atual (HU08). Grupo de
 	 * outro escritório devolve {@code false}.
+	 * <p>
+	 * Trava o grupo para leitura até o fim da transação de quem chama (HU09): enquanto um
+	 * usuário é colocado nele, o grupo não pode ser excluído. Chame dentro da transação que
+	 * grava o usuário.
 	 */
 	boolean grupoExiste(UUID grupoId);
 

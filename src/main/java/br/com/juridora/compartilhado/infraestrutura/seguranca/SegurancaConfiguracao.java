@@ -1,5 +1,8 @@
 package br.com.juridora.compartilhado.infraestrutura.seguranca;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import br.com.juridora.compartilhado.infraestrutura.tenant.TenantContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +11,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
@@ -19,6 +24,8 @@ import org.springframework.security.web.SecurityFilterChain;
  * <p>
  * Sem CSRF: a API não usa cookie, só o cabeçalho {@code Authorization}. As permissões
  * da claim {@code permissoes} viram authorities, para o {@code @PreAuthorize} da HU11.
+ * O proprietário recebe também {@link Autoridades#PAPEL_PROPRIETARIO}, que protege as
+ * operações exclusivas dele (RN04, HU09); nenhuma permissão atribuível o substitui (RN05).
  */
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
@@ -61,7 +68,13 @@ class SegurancaConfiguracao {
 		permissoes.setAuthoritiesClaimName(ClaimsToken.PERMISSOES);
 		permissoes.setAuthorityPrefix("");
 		JwtAuthenticationConverter conversor = new JwtAuthenticationConverter();
-		conversor.setJwtGrantedAuthoritiesConverter(permissoes);
+		conversor.setJwtGrantedAuthoritiesConverter(jwt -> {
+			List<GrantedAuthority> autoridades = new ArrayList<>(permissoes.convert(jwt));
+			if (Boolean.TRUE.equals(jwt.getClaimAsBoolean(ClaimsToken.PROPRIETARIO))) {
+				autoridades.add(new SimpleGrantedAuthority(Autoridades.PAPEL_PROPRIETARIO));
+			}
+			return autoridades;
+		});
 		return conversor;
 	}
 
