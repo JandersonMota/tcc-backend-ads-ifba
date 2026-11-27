@@ -10,16 +10,16 @@ Arquitetura: **monólito modular** (Spring Modulith) + **DDD** + **Hexagonal** (
 
 | Item | Tecnologia |
 |---|---|
-| Linguagem / build | Java 25 (LTS) · Maven 3.10.0 (Maven Wrapper incluído) |
-| Framework | Spring Boot 4.1.2 (Spring Framework 7.0) |
-| Persistência | Spring Data JPA / Hibernate 7.4 · PostgreSQL · Flyway 12.4 |
-| Modularidade | Spring Modulith 2.1.1 (core, JPA, actuator, observability) |
-| Segurança | Spring Security 7.1 + JWT RS256 emitido pela aplicação (`JwtEncoder`) e validado pelo OAuth2 Resource Server (ADR-014) · Validation |
-| API | Spring Web MVC · SpringDoc OpenAPI 3.2.0 (Swagger UI) |
+| Linguagem / build | Java 25 (LTS) · Maven 3.10.2 (Maven Wrapper incluído) |
+| Framework | Spring Boot 4.2.0 (Spring Framework 7.1) |
+| Persistência | Spring Data JPA / Hibernate 7.4 · PostgreSQL · Flyway 12.11 |
+| Modularidade | Spring Modulith 2.2.0 (core, JPA, actuator, observability) |
+| Segurança | Spring Security 7.2 + JWT RS256 emitido pela aplicação (`JwtEncoder`) e validado pelo OAuth2 Resource Server (ADR-014) · Validation |
+| API | Spring Web MVC · SpringDoc OpenAPI 3.2.1 (Swagger UI) |
 | Observabilidade | Spring Boot Actuator |
-| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit 1.4.2 (via Spring Modulith) · JaCoCo |
+| Testes | JUnit 6 · Testcontainers 2 (PostgreSQL) · Spring Modulith Test · ArchUnit 1.5.1 (via Spring Modulith) · JaCoCo |
 
-Versões não declaradas no `pom.xml` são as gerenciadas pelo Spring Boot 4.1.2. H2 não é usado: o RLS só é testado no PostgreSQL real.
+Versões não declaradas no `pom.xml` são as gerenciadas pelo Spring Boot 4.2.0. H2 não é usado: o RLS só é testado no PostgreSQL real.
 
 ## Como executar
 
