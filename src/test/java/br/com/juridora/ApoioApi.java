@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 import com.jayway.jsonpath.JsonPath;
@@ -15,7 +16,8 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 /**
  * Chamadas de API repetidas nos testes de integração: cadastro de escritório (HU05),
- * login (HU06), logout (HU07) e leitura do corpo da resposta.
+ * login (HU06), logout (HU07), gestão de usuários (HU08), grupos (HU09), troca de grupo
+ * (HU10) e leitura do corpo da resposta.
  */
 public final class ApoioApi {
 
@@ -63,6 +65,74 @@ public final class ApoioApi {
 
 	public MvcTestResult postar(String uri, String json) {
 		return mvc.post().uri(uri).contentType(MediaType.APPLICATION_JSON).content(json).exchange();
+	}
+
+	// ------------------------------------------------------- com token (HU08)
+
+	public MvcTestResult obter(String token, String uri) {
+		return mvc.get().uri(uri).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
+	}
+
+	public MvcTestResult postar(String token, String uri, String json) {
+		return mvc.post().uri(uri).header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+				.contentType(MediaType.APPLICATION_JSON).content(json).exchange();
+	}
+
+	/** POST sem corpo, para ações como {@code /desativar}. */
+	public MvcTestResult acionar(String token, String uri) {
+		return mvc.post().uri(uri).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
+	}
+
+	public MvcTestResult alterar(String token, String uri, String json) {
+		return mvc.put().uri(uri).header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+				.contentType(MediaType.APPLICATION_JSON).content(json).exchange();
+	}
+
+	public MvcTestResult excluir(String token, String uri) {
+		return mvc.delete().uri(uri).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
+	}
+
+	// ------------------------------------------------------------------ grupos (HU09)
+
+	public MvcTestResult criarGrupo(String token, String nome, String... permissoes) {
+		String lista = permissoes.length == 0 ? "" : "\"" + String.join("\", \"", permissoes) + "\"";
+		return postar(token, "/api/grupos", """
+				{"nome": "%s", "permissoes": [%s]}""".formatted(nome, lista));
+	}
+
+	/** Grupo personalizado criado pelo proprietário que precisa dar certo; devolve o ID. */
+	public UUID grupoPersonalizado(String tokenProprietario, String nome, String... permissoes) {
+		MvcTestResult resposta = criarGrupo(tokenProprietario, nome, permissoes);
+		assertThat(resposta).hasStatus(HttpStatus.CREATED);
+		return UUID.fromString(campo(resposta, "$.id"));
+	}
+
+	/** ID de um grupo padrão do escritório do token, pelo nome (ex.: "Advogado"). */
+	public UUID grupo(String token, String nome) {
+		MvcTestResult resposta = obter(token, "/api/grupos");
+		assertThat(resposta).hasStatus(HttpStatus.OK);
+		List<String> ids = JsonPath.read(corpo(resposta), "$[?(@.nome == '" + nome + "')].id");
+		assertThat(ids).hasSize(1);
+		return UUID.fromString(ids.getFirst());
+	}
+
+	public MvcTestResult cadastrarUsuario(String token, String email, UUID grupoId) {
+		return postar(token, "/api/usuarios", """
+				{"nome": "Membro", "email": "%s", "senha": "%s", "grupoId": "%s"}""".formatted(email, SENHA, grupoId));
+	}
+
+	/** Usuário cadastrado no grupo informado que precisa dar certo; devolve o ID. */
+	public UUID membro(String tokenProprietario, String email, String nomeGrupo) {
+		MvcTestResult resposta = cadastrarUsuario(tokenProprietario, email, grupo(tokenProprietario, nomeGrupo));
+		assertThat(resposta).hasStatus(HttpStatus.CREATED);
+		return UUID.fromString(campo(resposta, "$.id"));
+	}
+
+	// ------------------------------------------------------------ troca de grupo (HU10)
+
+	public MvcTestResult trocarGrupo(String token, UUID usuarioId, UUID grupoId) {
+		return alterar(token, "/api/usuarios/" + usuarioId + "/grupo", """
+				{"grupoId": "%s"}""".formatted(grupoId));
 	}
 
 	public static String campo(MvcTestResult resposta, String caminho) {

@@ -1,0 +1,12 @@
+# Só o necessário para o build (mvnw, .mvn, pom.xml e src) entra no contexto.
+.git
+.github
+.idea
+.vscode
+.claude
+target
+docker
+*.md
+*.iml
+.env
+.env.*

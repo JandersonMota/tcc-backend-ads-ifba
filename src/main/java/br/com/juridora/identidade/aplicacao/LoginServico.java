@@ -1,6 +1,5 @@
 package br.com.juridora.identidade.aplicacao;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Set;
 
@@ -11,6 +10,7 @@ import br.com.juridora.identidade.dominio.CredencialLogin;
 import br.com.juridora.identidade.dominio.Email;
 import br.com.juridora.identidade.dominio.EmissorToken;
 import br.com.juridora.identidade.dominio.EmissorToken.TokenAcesso;
+import br.com.juridora.identidade.dominio.PoliticaSenha;
 import br.com.juridora.identidade.dominio.Usuario;
 import br.com.juridora.identidade.dominio.UsuarioRepositorio;
 import org.springframework.stereotype.Service;
@@ -76,7 +76,7 @@ public class LoginServico {
 
 	private boolean senhaConfere(String senha, String hash) {
 		// O BCrypt recusa mais de 72 bytes; uma senha assim nunca foi cadastrada (HU05).
-		if (senha == null || senha.getBytes(StandardCharsets.UTF_8).length > CadastroEscritorioServico.TAMANHO_MAXIMO_SENHA) {
+		if (senha == null || PoliticaSenha.excedeTamanhoMaximo(senha)) {
 			codificadorSenha.confere("", hashFicticio);
 			return false;
 		}
