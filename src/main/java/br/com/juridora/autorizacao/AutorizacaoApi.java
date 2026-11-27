@@ -24,4 +24,21 @@ public interface AutorizacaoApi {
 	 */
 	Set<String> permissoesDoGrupo(UUID grupoId);
 
+	/**
+	 * {@code true} se o grupo existe no escritório da execução atual (HU08). Grupo de
+	 * outro escritório devolve {@code false}.
+	 * <p>
+	 * Trava o grupo para leitura até o fim da transação de quem chama (HU09): enquanto um
+	 * usuário é colocado nele, o grupo não pode ser excluído. Chame dentro da transação que
+	 * grava o usuário.
+	 */
+	boolean grupoExiste(UUID grupoId);
+
+	/**
+	 * {@code true} se o grupo é o Proprietário do escritório da execução atual (HU10). Esse
+	 * grupo é reservado ao dono: ninguém mais é colocado nele. Grupo inexistente ou de outro
+	 * escritório devolve {@code false}.
+	 */
+	boolean ehGrupoProprietario(UUID grupoId);
+
 }

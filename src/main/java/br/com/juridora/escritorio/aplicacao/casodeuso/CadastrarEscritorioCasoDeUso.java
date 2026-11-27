@@ -3,7 +3,6 @@ package br.com.juridora.escritorio.aplicacao.casodeuso;
 import java.time.Clock;
 import java.util.UUID;
 
-import br.com.juridora.escritorio.EscritorioApi;
 import br.com.juridora.escritorio.EscritorioCadastradoEvent;
 import br.com.juridora.escritorio.dominio.modelo.Escritorio;
 import br.com.juridora.escritorio.dominio.modelo.NomeEscritorio;
@@ -14,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Cadastra o escritório (tenant) no plano Free – HU05. */
 @Service
-class CadastrarEscritorioCasoDeUso implements EscritorioApi {
+public class CadastrarEscritorioCasoDeUso {
 
 	private final EscritorioRepositorio escritorios;
 	private final ApplicationEventPublisher eventos;
@@ -25,7 +24,6 @@ class CadastrarEscritorioCasoDeUso implements EscritorioApi {
 		this.eventos = eventos;
 	}
 
-	@Override
 	@Transactional
 	public void cadastrar(UUID id, String nome) {
 		Escritorio escritorio = Escritorio.cadastrar(id, new NomeEscritorio(nome), relogio.instant());
