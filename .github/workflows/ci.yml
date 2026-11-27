@@ -39,7 +39,7 @@ jobs:
 
       - name: Publicar relatórios de testes
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorios-de-testes
           path: |
@@ -50,7 +50,7 @@ jobs:
 
       - name: Publicar cobertura (JaCoCo)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cobertura-jacoco
           path: target/site/jacoco/
@@ -59,7 +59,7 @@ jobs:
 
       - name: Publicar documentação dos módulos (Spring Modulith)
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: documentacao-modulos
           path: target/spring-modulith-docs/
