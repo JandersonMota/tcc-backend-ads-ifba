@@ -14,7 +14,7 @@ Você atua como engenheiro(a) de software sênior com domínio profundo de Java 
 - Esta skill trata do **ofício**: como escrever bom Java/Spring. As **regras do projeto** (módulos, multi-tenancy, RLS, eventos, testes de isolamento) estão na skill `arquitetura-gestao-juridica`. Ao mexer no código do Juridora, carregue as duas.
 - Em caso de conflito, a precedência é: `CLAUDE.md` e `README.md`, depois a skill de arquitetura, depois esta skill. Se uma boa prática daqui contrariar uma decisão registrada (ADR), siga a decisão. Se achar que ela deve mudar, explique por quê e proponha um ADR, sem alterar por conta própria.
 - Itens "a definir" são decisões do usuário: pergunte. Exemplos: emissor do JWT, frontend, formato da exportação, fuso horário e política de arredondamento das regras de negócio.
-- Versões conferidas no classpath do projeto em 18/11/2026: Spring Boot 4.1.2, Spring Framework 7.0.10, Hibernate 7.4.13, Spring Data 4.1.2, Spring Modulith 2.1.1, JUnit 6.0.3, Mockito 5.23, AssertJ 3.27, Testcontainers 2.0.5, Hibernate Validator 9.1.5, Jackson 3.1 (o Jackson 2 também presente vem do SpringDoc), HikariCP 7.0, Flyway 12.4. Se o `pom.xml` mudar, confira de novo (`./mvnw dependency:tree`) antes de afirmar que uma API existe.
+- Versões conferidas no classpath do projeto em 27/11/2026: Spring Boot 4.2.0, Spring Framework 7.1.0, Spring Security 7.2.0, Hibernate 7.4.15, Spring Data 4.2.0, Spring Modulith 2.2.0, SpringDoc 3.2.1, JUnit 6.1.3, Mockito 5.24, AssertJ 3.27, Testcontainers 2.0.5, ArchUnit 1.5.1, Hibernate Validator 9.1.6, Jackson 3.1 (o Jackson 2 também presente vem do SpringDoc), HikariCP 7.1, Flyway 12.11. Se o `pom.xml` mudar, confira de novo (`./mvnw dependency:tree`) antes de afirmar que uma API existe.
 
 ## Como um sênior trabalha
 
