@@ -11,6 +11,8 @@ import br.com.juridora.identidade.dominio.Usuario;
 import br.com.juridora.identidade.dominio.UsuarioRepositorio;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +26,10 @@ import org.springframework.stereotype.Repository;
  * <p>
  * A credencial de login vem da função {@code credencial_por_email} (V5, ADR-015), via
  * JDBC: é a única leitura de {@code usuario} fora do tenant da execução.
+ * <p>
+ * A contagem de ativos usa uma trava consultiva da transação
+ * ({@code pg_advisory_xact_lock}) com a chave do tenant da transação: só serializa quem
+ * conta usuários do mesmo escritório e é liberada sozinha no commit ou rollback.
  */
 @Repository
 class JpaUsuarioRepositorio implements UsuarioRepositorio {
@@ -32,6 +38,10 @@ class JpaUsuarioRepositorio implements UsuarioRepositorio {
 
 	private static final String CREDENCIAL_POR_EMAIL =
 			"select id, tenant_id, senha_hash, ativo from credencial_por_email(:email)";
+
+	/** Classe da trava (1 = limite de usuários) e chave derivada do tenant da transação. */
+	private static final String TRAVAR_LIMITE_USUARIOS =
+			"select pg_advisory_xact_lock(1, hashtext(current_setting('app.tenant_id')))";
 
 	private final SpringUsuarioRepositorio spring;
 
@@ -44,20 +54,29 @@ class JpaUsuarioRepositorio implements UsuarioRepositorio {
 
 	@Override
 	public Usuario adicionar(Usuario usuario) {
-		try {
-			return spring.saveAndFlush(usuario);
-		}
-		catch (DataIntegrityViolationException excecao) {
-			if (violouEmailUnico(excecao)) {
-				throw new EmailJaCadastradoException();
-			}
-			throw excecao;
-		}
+		return gravar(usuario);
+	}
+
+	@Override
+	public Usuario atualizar(Usuario usuario) {
+		return gravar(usuario);
 	}
 
 	@Override
 	public Optional<Usuario> buscar(UUID id) {
 		return spring.findById(id);
+	}
+
+	@Override
+	public Page<Usuario> listar(Pageable pagina) {
+		return spring.findAll(pagina);
+	}
+
+	@Override
+	public long contarAtivosComTrava() {
+		jdbc.sql(TRAVAR_LIMITE_USUARIOS).query().listOfRows();
+		// Comando separado: em READ COMMITTED ele enxerga o que foi confirmado enquanto esperava a trava.
+		return spring.countByAtivoTrue();
 	}
 
 	@Override
@@ -70,6 +89,18 @@ class JpaUsuarioRepositorio implements UsuarioRepositorio {
 						linha.getString("senha_hash"),
 						linha.getBoolean("ativo")))
 				.optional();
+	}
+
+	private Usuario gravar(Usuario usuario) {
+		try {
+			return spring.saveAndFlush(usuario);
+		}
+		catch (DataIntegrityViolationException excecao) {
+			if (violouEmailUnico(excecao)) {
+				throw new EmailJaCadastradoException();
+			}
+			throw excecao;
+		}
 	}
 
 	private static boolean violouEmailUnico(Throwable excecao) {

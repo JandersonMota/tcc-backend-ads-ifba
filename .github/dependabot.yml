@@ -34,3 +34,19 @@ updates:
       # Mantém o PostgreSQL na série 18 (atualizações de versão maior são decisão do projeto)
       - dependency-name: postgres
         update-types: ["version-update:semver-major"]
+      # Imagem construída localmente pelo Dockerfile (não está em nenhum registry)
+      - dependency-name: juridora-api
+
+  # Imagens base do Dockerfile da API (eclipse-temurin)
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(docker)"
+    ignore:
+      # Mantém o Java na LTS 25 (26 e 27 não são LTS; a próxima LTS é decisão do projeto).
+      # Os patches (25.0.x) chegam pelas tags 25-jdk/25-jre a cada novo build.
+      - dependency-name: eclipse-temurin
+        update-types: ["version-update:semver-major"]

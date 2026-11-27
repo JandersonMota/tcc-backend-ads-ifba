@@ -1,5 +1,8 @@
 package br.com.juridora.escritorio.adaptador.saida.persistencia;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import br.com.juridora.escritorio.dominio.modelo.Escritorio;
 import br.com.juridora.escritorio.dominio.repositorio.EscritorioRepositorio;
 import jakarta.persistence.EntityManager;
@@ -23,6 +26,11 @@ class JpaEscritorioRepositorio implements EscritorioRepositorio {
 	@Override
 	public void adicionar(Escritorio escritorio) {
 		entityManager.persist(escritorio);
+	}
+
+	@Override
+	public Optional<Escritorio> buscar(UUID id) {
+		return Optional.ofNullable(entityManager.find(Escritorio.class, id));
 	}
 
 }

@@ -1,7 +1,7 @@
 package br.com.juridora.identidade.adaptador.entrada.web;
 
 import br.com.juridora.identidade.aplicacao.CadastrarEscritorioComando;
-import br.com.juridora.identidade.aplicacao.CadastroEscritorioServico;
+import br.com.juridora.identidade.dominio.PoliticaSenha;
 import br.com.juridora.identidade.dominio.Usuario;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -33,7 +33,7 @@ record CadastrarEscritorioRequest(
 
 		@Schema(example = "senha-forte-123", format = "password")
 		@NotBlank(message = "A senha é obrigatória.")
-		@Size(min = CadastroEscritorioServico.TAMANHO_MINIMO_SENHA, max = CadastroEscritorioServico.TAMANHO_MAXIMO_SENHA,
+		@Size(min = PoliticaSenha.TAMANHO_MINIMO, max = PoliticaSenha.TAMANHO_MAXIMO,
 				message = "A senha deve ter de {min} a {max} caracteres.")
 		String senha) {
 
