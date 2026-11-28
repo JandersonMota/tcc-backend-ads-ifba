@@ -1,5 +1,6 @@
 package br.com.juridora.autorizacao.dominio.modelo;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -123,12 +124,20 @@ public class Grupo extends EntidadeTenant {
 		return padrao;
 	}
 
+	/**
+	 * Permissões efetivas do grupo. O Proprietário tem sempre o catálogo inteiro (RN04),
+	 * mesmo que o conjunto gravado seja mais antigo: uma permissão nova no catálogo chega ao
+	 * dono sem migração de dados (HU11).
+	 */
 	public Set<Permissao> getPermissoes() {
+		if (ehProprietario()) {
+			return Set.copyOf(EnumSet.allOf(Permissao.class));
+		}
 		return Set.copyOf(permissoes);
 	}
 
 	public boolean possui(Permissao permissao) {
-		return permissoes.contains(permissao);
+		return getPermissoes().contains(permissao);
 	}
 
 	private static String validarNome(String nome) {

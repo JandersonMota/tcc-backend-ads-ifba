@@ -23,9 +23,15 @@ import org.springframework.security.web.SecurityFilterChain;
  * (Política de Segurança §2.2: endpoint sem regra explícita é bloqueado).
  * <p>
  * Sem CSRF: a API não usa cookie, só o cabeçalho {@code Authorization}. As permissões
- * da claim {@code permissoes} viram authorities, para o {@code @PreAuthorize} da HU11.
- * O proprietário recebe também {@link Autoridades#PAPEL_PROPRIETARIO}, que protege as
- * operações exclusivas dele (RN04, HU09); nenhuma permissão atribuível o substitui (RN05).
+ * da claim {@code permissoes} viram authorities. O proprietário recebe também
+ * {@link Autoridades#PAPEL_PROPRIETARIO}, que protege as operações exclusivas dele (RN04,
+ * HU09); nenhuma permissão atribuível o substitui (RN05).
+ * <p>
+ * Controle de acesso em duas camadas (HU11): aqui, por rota, só o que é público, o que é
+ * operacional (negado) e a exigência de token; no controller, cada endpoint declara a sua
+ * regra com {@code @PreAuthorize} ({@code hasAuthority('RECURSO_ACAO')},
+ * {@code hasRole('PROPRIETARIO')}, {@code isAuthenticated()} ou {@code permitAll()}). O
+ * {@code ControleDeAcessoTest} reprova endpoint sem regra ou com permissão fora do catálogo.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
@@ -36,6 +42,12 @@ class SegurancaConfiguracao {
 
 	private static final String[] ROTAS_PUBLICAS = { "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
 			"/actuator/health", "/actuator/health/**", "/error" };
+
+	/**
+	 * Demais endpoints do Actuator ({@code info}, {@code modulith}): dados da operação, não do
+	 * escritório, que nenhum usuário da API acessa (HU11). Sem token respondem 401; com token, 403.
+	 */
+	private static final String[] ROTAS_OPERACIONAIS = { "/actuator/**" };
 
 	@Bean
 	SecurityFilterChain cadeiaDeSeguranca(HttpSecurity http, TenantContext tenantContext,
@@ -50,6 +62,7 @@ class SegurancaConfiguracao {
 				.authorizeHttpRequests(rotas -> rotas
 						.requestMatchers(HttpMethod.POST, ROTAS_PUBLICAS_POST).permitAll()
 						.requestMatchers(ROTAS_PUBLICAS).permitAll()
+						.requestMatchers(ROTAS_OPERACIONAIS).denyAll()
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(servidor -> servidor
 						.jwt(jwt -> jwt.jwtAuthenticationConverter(conversorDePermissoes()))

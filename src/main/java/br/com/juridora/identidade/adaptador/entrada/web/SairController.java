@@ -6,6 +6,7 @@ import br.com.juridora.identidade.aplicacao.EncerrarSessaoServico;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ class SairController {
 	}
 
 	@PostMapping("/sair")
+	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(summary = "Encerra a sessão", description = "Revoga o token da requisição até ele expirar.")
 	void sair(@AuthenticationPrincipal Jwt token) {

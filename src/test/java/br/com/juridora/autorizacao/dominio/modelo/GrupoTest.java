@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /** HU09 – regras do agregado Grupo. */
 class GrupoTest {
@@ -95,6 +97,24 @@ class GrupoTest {
 		assertThatThrownBy(() -> proprietario.definirPermissoes(Set.of()))
 				.isInstanceOf(GrupoProprietarioProtegidoException.class);
 		assertThat(proprietario.getPermissoes()).containsExactlyInAnyOrder(Permissao.values());
+	}
+
+	@Test
+	void proprietarioTemOCatalogoInteiroMesmoComPermissoesGravadasAntigas() {
+		Grupo proprietario = Grupo.padrao(GrupoPadrao.PROPRIETARIO);
+		// Simula um grupo gravado antes de uma permissão nova entrar no catálogo (HU11, RN04).
+		ReflectionTestUtils.setField(proprietario, "permissoes", new HashSet<>(Set.of(Permissao.CLIENTE_VISUALIZAR)));
+
+		assertThat(proprietario.getPermissoes()).containsExactlyInAnyOrder(Permissao.values());
+		assertThat(proprietario.possui(Permissao.AUDITORIA_VISUALIZAR)).isTrue();
+	}
+
+	@Test
+	void grupoComumTemSoAsPermissoesGravadas() {
+		Grupo advogado = Grupo.padrao(GrupoPadrao.ADVOGADO);
+
+		assertThat(advogado.possui(Permissao.FINANCEIRO_VISUALIZAR)).isFalse();
+		assertThat(advogado.getPermissoes()).isEqualTo(GrupoPadrao.ADVOGADO.permissoes());
 	}
 
 	@Test
