@@ -131,7 +131,7 @@ O MVP exige controle granular de permissões com grupos (módulo `autorizacao`).
 Convenção (catálogo e grupos padrão em `doc-mvp/10-seguranca-e-conformidade/matriz-de-permissoes.md`, no repositório `tcc-ads-ifba`):
 - Permissões no formato `RECURSO_ACAO` em português, conforme o projeto completo (ex.: `PROCESSO_CRIAR`, `CLIENTE_VISUALIZAR`, `FINANCEIRO_PAGAMENTO_REGISTRAR`).
 - Usuário pertence a grupos; grupos agregam permissões; as permissões efetivas viram authorities no token ou são carregadas na autenticação.
-- Endpoints protegidos com `@PreAuthorize("hasAuthority('...')")` (habilitar `@EnableMethodSecurity`).
+- **Todo** endpoint declara `@PreAuthorize` (HU11): `hasAuthority('RECURSO_ACAO')`/`hasAnyAuthority` com permissão do enum `Permissao`, `hasRole('PROPRIETARIO')` para operações exclusivas do dono, `isAuthenticated()` para o que é do próprio usuário e `permitAll()` só para rotas que também estão na lista pública da `SegurancaConfiguracao`. O `ControleDeAcessoTest` reprova endpoint sem regra ou com permissão/papel desconhecido; acrescente a rota nova à tabela `rotas()` do `ControleDeAcessoIT`.
 
 Respostas:
 - Sem permissão → **403**.
